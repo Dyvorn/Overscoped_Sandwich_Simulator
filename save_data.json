@@ -1,30 +1,25 @@
 {
     "1": {
-        "name": "Test",
-        "day": 41,
-        "money": 1.1858006338104019e+19,
-        "rank": "Galactic Master Chef",
+        "name": "Unnamed Sandwich Empire",
+        "day": 1,
+        "money": 50,
+        "rank": "Beginner Chef",
         "difficulty": "NORMAL",
-        "location_id": 6,
+        "location_id": 1,
         "unlocked": [
             "Bread",
-            "Fresh Tomato",
-            "Premium Ham",
-            "Cosmic Cheese",
-            "Martian Pepper",
-            "Storm Pickles",
-            "Void Matter"
+            "Fresh Tomato"
         ],
-        "hype": 0.37199999999999994,
+        "loan_amount": 0,
+        "loan_interest_rate": 0,
+        "hype": 0,
         "upgrades": [],
         "total_served": 0,
         "perfect_streak": 0,
         "ingredient_counts": {},
         "discovered_recipes": [],
         "achievements_unlocked": [],
-        "sandwich_history": [],
-        "lore_log_content": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\nhr { height: 1px; border-width: 0; }\nli.unchecked::marker { content: \"\\2610\"; }\nli.checked::marker { content: \"\\2612\"; }\n</style></head><body style=\" font-family:'Consolas'; font-size:14px; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:12px; margin-bottom:8px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:700; color:#ffca28;\">ORDER:</span><span style=\" color:#ffca28;\"> Wants Bread, Fresh Tomato, Martian Pepper, Martian Pepper, Cosmic Cheese, Void Matter</span></p>\n<p style=\" margin-top:12px; margin-bottom:8px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-style:italic; color:#888888;\">Customer says: &quot;The void whispers to me through this bread.&quot;</span></p></body></html>",
-        "game_completed": true
+        "sandwich_history": []
     },
     "2": {
         "name": "wsfdfswfw",

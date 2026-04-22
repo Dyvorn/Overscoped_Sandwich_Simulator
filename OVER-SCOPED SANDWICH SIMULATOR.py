@@ -6,7 +6,7 @@ import json
 from pathlib import Path # type: ignore
 from PyQt6.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, pyqtProperty, QPoint, QTimer, QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QFont, QLinearGradient, QRadialGradient
+from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QFont, QLinearGradient, QRadialGradient, QPixmap
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QLabel, QPushButton, QStackedWidget, QLineEdit, QSlider, QTextEdit,
@@ -14,10 +14,12 @@ from PyQt6.QtWidgets import (
 )
 
 # --- Configuration & Constants ---
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).resolve().parent
 SAVE_FILE = BASE_DIR / "save_data.json"
 COLLECTIBLES_FILE = BASE_DIR / "collectibles.json"
-MUSIC_FILE = BASE_DIR / "background_music.mp3"
+SOUNDS_DIR = BASE_DIR / "sounds"
+IMAGES_DIR = BASE_DIR / "images"
+MUSIC_FILE = SOUNDS_DIR / "background_music.mp3"
 
 COLORS = {
     "primary": "#ffca28",
@@ -32,18 +34,18 @@ COLORS = {
 }
 
 SFX_FILES = {
-    "serve_sandwich": BASE_DIR / "sfx_serve_sandwich.wav",
-    "customer_leave": BASE_DIR / "sfx_customer_leave.wav",
-    "button_click": BASE_DIR / "sfx_button_click.wav",
-    "achievement": BASE_DIR / "sfx_achievement.wav",
+    "serve_sandwich": SOUNDS_DIR / "sfx_serve_sandwich.wav",
+    "customer_leave": SOUNDS_DIR / "sfx_customer_leave.wav",
+    "button_click": SOUNDS_DIR / "sfx_button_click.wav",
+    "achievement": SOUNDS_DIR / "sfx_achievement.wav",
     "ingredients": {
-        "Bread": BASE_DIR / "sfx_bread.wav",
-        "Fresh Tomato": BASE_DIR / "sfx_tomato.wav",
-        "Premium Ham": BASE_DIR / "sfx_ham.wav",
-        "Cosmic Cheese": BASE_DIR / "sfx_cheese.wav",
-        "Martian Pepper": BASE_DIR / "sfx_pepper.wav",
-        "Storm Pickles": BASE_DIR / "sfx_pickle.wav",
-        "Void Matter": BASE_DIR / "sfx_void.wav",
+        "Bread": SOUNDS_DIR / "sfx_bread.wav",
+        "Fresh Tomato": SOUNDS_DIR / "sfx_tomato.wav",
+        "Premium Ham": SOUNDS_DIR / "sfx_ham.wav",
+        "Cosmic Cheese": SOUNDS_DIR / "sfx_cheese.wav",
+        "Martian Pepper": SOUNDS_DIR / "sfx_pepper.wav",
+        "Storm Pickles": SOUNDS_DIR / "sfx_pickle.wav",
+        "Void Matter": SOUNDS_DIR / "sfx_void.wav",
     }
 }
 
@@ -68,7 +70,8 @@ LOCATIONS = {
         "sky": ["#81d4fa", "#29b6f6"],
         "rent": 20,
         "rent_name": "Garden Permit",
-        "music_file": BASE_DIR / "music_garden.mp3",
+        "music_file": SOUNDS_DIR / "music_garden.mp3",
+        "bg_file": IMAGES_DIR / "bg_garden.png",
     },
     2: {
         "name": "Small Sandwich Shop", "days": 12, "rank": "Amateur Entrepreneur", "req": 5000, 
@@ -79,7 +82,8 @@ LOCATIONS = {
         "sky": ["#4fc3f7", "#0288d1"],
         "rent": 200, 
         "rent_name": "Shop Rent",
-        "music_file": BASE_DIR / "music_shop.mp3",
+        "music_file": SOUNDS_DIR / "music_shop.mp3",
+        "bg_file": IMAGES_DIR / "bg_shop.png",
     },
     3: {
         "name": "The Moon Base", "days": 15, "rank": "Space Chef", "req": 100000, 
@@ -90,7 +94,8 @@ LOCATIONS = {
         "sky": ["#212121", "#000000"],
         "rent": 5000,
         "rent_name": "Oxygen Tax",
-        "music_file": BASE_DIR / "music_moon.mp3",
+        "music_file": SOUNDS_DIR / "music_moon.mp3",
+        "bg_file": IMAGES_DIR / "bg_moon.png",
     },
     4: {
         "name": "Mars Diner", "days": 20, "rank": "Interplanetary Tycoon", "req": 10000000, 
@@ -101,7 +106,8 @@ LOCATIONS = {
         "sky": ["#bf360c", "#3e2723"],
         "rent": 250000,
         "rent_name": "Cooling Utilities",
-        "music_file": BASE_DIR / "music_mars.mp3",
+        "music_file": SOUNDS_DIR / "music_mars.mp3",
+        "bg_file": IMAGES_DIR / "bg_mars.png",
     },
     5: {
         "name": "Jupiter Floating Bar", "days": 25, "rank": "Gas Giant Gourmet", "req": 1000000000, 
@@ -112,7 +118,8 @@ LOCATIONS = {
         "sky": ["#4a148c", "#1a237e"],
         "rent": 15000000,
         "rent_name": "Gravity Stabilization",
-        "music_file": BASE_DIR / "music_jupiter.mp3",
+        "music_file": SOUNDS_DIR / "music_jupiter.mp3",
+        "bg_file": IMAGES_DIR / "bg_jupiter.png",
     },
     6: {
         "name": "Ton-216 (Black Hole)", "days": 40, "rank": "Galactic Master Chef", "req": 6000000000000000000, 
@@ -123,7 +130,8 @@ LOCATIONS = {
         "sky": ["#000000", "#000000"],
         "rent": 1000000000,
         "rent_name": "Void Maintenance",
-        "music_file": BASE_DIR / "music_blackhole.mp3",
+        "music_file": SOUNDS_DIR / "music_blackhole.mp3",
+        "bg_file": IMAGES_DIR / "bg_blackhole.png",
     }
 }
 
@@ -1223,6 +1231,7 @@ class GameScreen(QWidget):
         self.day_served = 0
         self.day_customers_lost = 0
         self.current_market_event = MARKET_EVENTS["Normal Market"]
+        self.active_order_text = ""
         self.customer_patience = 100
         self.ingredient_discount = 1.0  # For branching event effects
         self.customer_patience_timer = QTimer(self)
@@ -1231,11 +1240,7 @@ class GameScreen(QWidget):
         self.order_timer.timeout.connect(self.generate_order)
         self.hazard_timer = QTimer(self)
         self.hazard_timer.timeout.connect(self.trigger_environmental_hazard)
-
-        self.sfx_add_ingredient = QMediaPlayer()
-        self.sfx_serve_sandwich = QMediaPlayer()
-        self.sfx_customer_leave = QMediaPlayer()
-        self.sfx_achievement = QMediaPlayer()
+        self.sfx_achievement_player = QMediaPlayer()
 
         self.init_ui()
         self.spiciness = 0
@@ -1301,14 +1306,9 @@ class GameScreen(QWidget):
         
         # Setup SFX
         try:
-            self.sfx_serve_sandwich.setAudioOutput(self.window().audio_output)
-            self.sfx_customer_leave.setAudioOutput(self.window().audio_output)
-            self.sfx_serve_sandwich.setSource(QUrl.fromLocalFile(str(SFX_FILES["serve_sandwich"])))
-            if SFX_FILES["customer_leave"].exists():
-                self.sfx_customer_leave.setSource(QUrl.fromLocalFile(str(SFX_FILES["customer_leave"])))
             if SFX_FILES["achievement"].exists():
-                self.sfx_achievement.setAudioOutput(self.window().audio_output)
-                self.sfx_achievement.setSource(QUrl.fromLocalFile(str(SFX_FILES["achievement"])))
+                self.sfx_achievement_player.setAudioOutput(self.window().audio_output)
+                self.sfx_achievement_player.setSource(QUrl.fromLocalFile(str(SFX_FILES["achievement"].resolve())))
         except:
             pass
 
@@ -1317,7 +1317,7 @@ class GameScreen(QWidget):
         self.show_story_popup("DAILY BRIEFING", briefing)
         self.generate_order()
         self.decay_timer.start(100)
-        
+
         # Tutorial
         if data['day'] == 1 and data['location_id'] == 1:
             self.show_story_popup("HOW TO PLAY", 
@@ -1326,9 +1326,9 @@ class GameScreen(QWidget):
                 "3. Click SERVE to cash in.\n"
                 "4. Hit END DAY to progress. Don't go broke!\n\n"
                 "TIP: Discover secret recipes for massive bonuses!")
-        
-        # Hazard timer
-        if self.session.get('location_id') in [3, 4]:
+
+        # Start hazard timer for locations with hazards
+        if self.session.get('location_id') in [3, 4, 5]:
             self.hazard_timer.start(5000)
         else:
             self.hazard_timer.stop()
@@ -1351,6 +1351,13 @@ class GameScreen(QWidget):
                 self.window().shake_intensity = intensity
             else:
                 self.window().shake_intensity = 0
+
+        # Jupiter Jitter Effect
+        if self.session.get('location_id') == 5 and hasattr(self, 'gravity_surge_active') and self.gravity_surge_active:
+            for i in range(self.ingredients_panel.count()):
+                w = self.ingredients_panel.itemAt(i).widget()
+                if w:
+                    w.move(w.x() + random.randint(-3, 3), w.y() + random.randint(-3, 3))
 
         # Hype decay
         if self.hype > 0:
@@ -1382,8 +1389,7 @@ class GameScreen(QWidget):
                 self.log_message(f"<span style='color: #ff5252;'>Customer lost patience and left!</span>")
                 self.log_message(f"<i style='color: #ff8a80;'>'{feedback}'</i>")
                 try:
-                    if self.sfx_customer_leave.source() != QUrl():
-                        self.sfx_customer_leave.play()
+                    self.window().play_ui_sfx("customer_leave")
                 except:
                     pass
                 # Penalty
@@ -1437,15 +1443,6 @@ class GameScreen(QWidget):
         if loc_id == 6:
             num = random.randint(6, 10)
         
-        order_delay = 5000
-        order_delay -= int(self.hype * 1000)
-        if self.session.get('difficulty') == "OVER-SCOPED":
-            order_delay -= 2000
-        elif self.session.get('difficulty') == "EASY":
-            order_delay += 2000
-        order_delay = max(1000, order_delay)
-        
-        self.order_timer.start(order_delay)
         self.customer_patience = 100
         self.patience_bar.setValue(100)
         self.customer_patience_timer.start(1000)
@@ -1455,9 +1452,23 @@ class GameScreen(QWidget):
         if "Bread" in unlocked and "Bread" not in self.current_order:
             self.current_order[0] = "Bread"
             
-        order_text = ", ".join(self.current_order)
-        self.log_message(f"<span style='color: #ffca28;'><b>ORDER:</b> Wants {order_text}</span>")
+        self.active_order_text = ", ".join(self.current_order)
+        self.display_current_order()
         self.log_message(f"<i style='color: #888;'>Customer says: \"{random.choice(CUSTOMER_QUOTES)}\"</i>")
+
+    def display_current_order(self):
+        """Helper to display order, respecting scrambler hazards."""
+        if not self.current_order:
+            return
+            
+        if self.window().solar_flare_active:
+            # Scramble the text
+            chars = list(self.active_order_text)
+            random.shuffle(chars)
+            display_text = "".join(chars)
+            self.log_message(f"<span style='color: #ffca28;'><b>ORDER:</b> <span style='background: #fff; color: #000;'>{display_text}</span> [SIGNAL LOST]</span>")
+        else:
+            self.log_message(f"<span style='color: #ffca28;'><b>ORDER:</b> Wants {self.active_order_text}</span>")
 
     def setup_ingredients(self):
         for i in reversed(range(self.ingredients_panel.count())): 
@@ -1474,7 +1485,13 @@ class GameScreen(QWidget):
             
             effective_cost = base_cost * market_mult * self.ingredient_discount
             
-            btn = JuicyButton(f"{ing} (${int(effective_cost)})")
+            # Hazard: Sandstorm hides info
+            if self.sandwich_visual.sandstorm_active:
+                btn_text = "??? ($ ???)"
+            else:
+                btn_text = f"{ing} (${int(effective_cost)})"
+                
+            btn = JuicyButton(btn_text)
             btn.setFixedHeight(50)
             btn.clicked.connect(lambda _, x=ing: self.add_ingredient(x))
             
@@ -1496,12 +1513,7 @@ class GameScreen(QWidget):
             self.current_sandwich.append(name)
             self.sandwich_visual.add_ingredient(name)
             try:
-                sfx_path = SFX_FILES["ingredients"].get(name)
-                if sfx_path and sfx_path.exists():
-                    self.sfx_add_ingredient = QMediaPlayer()
-                    self.sfx_add_ingredient.setAudioOutput(self.window().audio_output)
-                    self.sfx_add_ingredient.setSource(QUrl.fromLocalFile(str(sfx_path)))
-                    self.sfx_add_ingredient.play()
+                self.window().play_ui_sfx("ingredients", ingredient_name=name)
             except:
                 pass
             self.log_message(f"Added <b>{name}</b> (-{format_currency(cost)})")
@@ -1762,8 +1774,7 @@ class GameScreen(QWidget):
         save_collectibles(global_collectibles)
         
         try:
-            if self.sfx_serve_sandwich.source() != QUrl():
-                self.sfx_serve_sandwich.play()
+            self.window().play_ui_sfx("serve_sandwich")
         except:
             pass
         
@@ -1829,8 +1840,8 @@ class GameScreen(QWidget):
                 self.log_message(f"<i style='color: #fff9c4;'>{ach['desc']}</i>")
                 
                 try:
-                    if self.sfx_achievement.source() != QUrl():
-                        self.sfx_achievement.play()
+                    if self.sfx_achievement_player.source() != QUrl():
+                        self.sfx_achievement_player.play()
                 except:
                     pass
 
@@ -2019,6 +2030,7 @@ class GameScreen(QWidget):
         """Called after upgrade shop to resume game at new location."""
         main_window = self.window()
         main_window.update_music(self.session['location_id'])
+        main_window.update_background_image(self.session['location_id'])
         self.update_game_data(self.session)
         main_window.stack.setCurrentIndex(Screen.GAME)
 
@@ -2083,8 +2095,7 @@ class GameScreen(QWidget):
         """Restart timers after day summary popup is closed."""
         self.decay_timer.start(100)
         self.customer_patience_timer.start(1000)
-        self.order_timer.start(5000)
-        if self.session.get('location_id') in [3, 4]:
+        if self.session.get('location_id') in [3, 4, 5]:
             self.hazard_timer.start(5000)
         else:
             self.hazard_timer.stop()
@@ -2098,22 +2109,34 @@ class GameScreen(QWidget):
             if random.random() < 0.2:
                 self.log_message("<span style='color: #ff9800;'>WARNING: Solar Flare detected! Expect visual interference.</span>")
                 self.window().solar_flare_active = True
+                self.display_current_order() # Scramble existing log
                 QTimer.singleShot(random.randint(3000, 8000), self.clear_environmental_hazard)
         elif loc_id == 4:  # Mars: Sandstorm
             if random.random() < 0.2:
                 self.log_message("<span style='color: #bf360c;'>WARNING: Martian Sandstorm approaching! Visibility reduced.</span>")
                 self.sandwich_visual.sandstorm_active = True
+                self.setup_ingredients() # Hide ingredient names
                 QTimer.singleShot(random.randint(3000, 8000), self.clear_environmental_hazard)
+        elif loc_id == 5:  # Jupiter: Gravity Surge
+            if random.random() < 0.2:
+                self.log_message("<span style='color: #4a148c;'>WARNING: Gravitational Surge! Controls malfunctioning.</span>")
+                self.gravity_surge_active = True
+                QTimer.singleShot(random.randint(4000, 7000), self.clear_environmental_hazard)
 
     def clear_environmental_hazard(self):
         loc_id = self.session.get('location_id')
         if loc_id == 3:
             self.window().solar_flare_active = False
             self.log_message("<span style='color: #4caf50;'>Solar Flare subsided.</span>")
+            self.display_current_order() # Restore order text
         elif loc_id == 4:
             self.sandwich_visual.sandstorm_active = False
             self.log_message("<span style='color: #4caf50;'>Sandstorm passed.</span>")
-        if self.session.get('location_id') in [3, 4]:
+            self.setup_ingredients() # Restore ingredient names
+        elif loc_id == 5:
+            self.gravity_surge_active = False
+            self.log_message("<span style='color: #4caf50;'>Gravity stabilized.</span>")
+        if self.session.get('location_id') in [3, 4, 5]:
             self.hazard_timer.start(random.randint(10000, 20000))
 
 
@@ -2123,6 +2146,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Over-Scoped Sandwich Simulator")
 
         # Audio Setup
+        self.current_bg_pixmap = None
+        self.current_bg_id = 0 # 0 for menu
         self.audio_output = QAudioOutput()
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
@@ -2130,33 +2155,19 @@ class MainWindow(QMainWindow):
         # Try default music
         self.current_music_file = MUSIC_FILE
         if MUSIC_FILE.exists():
-            self.player.setSource(QUrl.fromLocalFile(str(MUSIC_FILE)))
+            self.player.setSource(QUrl.fromLocalFile(str(MUSIC_FILE.resolve())))
         elif LOCATIONS[1]["music_file"].exists():
             self.current_music_file = LOCATIONS[1]["music_file"]
-            self.player.setSource(QUrl.fromLocalFile(str(self.current_music_file)))
+            self.player.setSource(QUrl.fromLocalFile(str(self.current_music_file.resolve())))
         self.audio_output.setVolume(0.5)
         self.player.setLoops(QMediaPlayer.Loops.Infinite)
         self.player.play()
 
         # Background Animation
-        self.bg_clouds = []
-        for _ in range(6):
-            self.bg_clouds.append({
-                'pos': QPoint(random.randint(0, 1920), random.randint(0, 1080)), 
-                'speed': random.randint(1, 3), 
-                'size': random.randint(100, 300)
-            })
-        self.sun_angle = 0
-        self.sandwich_birds = []
         self.time_counter = 0
+        self.particles = []
         self.shake_intensity = 0
         self.solar_flare_active = False
-        for _ in range(4):
-            self.sandwich_birds.append({
-                'pos': QPoint(random.randint(0, 1920), random.randint(50, 400)), 
-                'speed': random.randint(4, 7), 
-                'flap': random.random() * 6.28
-            })
         
         self.bg_timer = QTimer(self)
         self.bg_timer.timeout.connect(self.update_bg)
@@ -2166,8 +2177,11 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         
         def navigate(index, data=None):
+            if index == Screen.MAIN_MENU:
+                self.update_background_image(0)
             if index == Screen.GAME and data:
                 self.update_music(data['location_id'])
+                self.update_background_image(data['location_id'])
                 self.game_screen.update_game_data(data)
             self.stack.setCurrentIndex(index)
 
@@ -2184,52 +2198,92 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.upgrade_shop)  # 3
         
         self.setCentralWidget(self.stack)
+        self.update_background_image(0) # Start with menu background
 
         # Borderless Fullscreen
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.showFullScreen()
 
-    def play_ui_sfx(self, sfx_key):
+    def update_background_image(self, location_id):
+        """Caches the background image for the current location."""
+        self.current_bg_id = location_id
+        path = None
+        if location_id == 0:
+            path = IMAGES_DIR / "bg_menu.png"
+        else:
+            path = LOCATIONS.get(location_id, {}).get("bg_file")
+
+        if path and path.exists():
+            self.current_bg_pixmap = QPixmap(str(path.resolve()))
+        else:
+            self.current_bg_pixmap = None
+
+        # Initialize particles for the new environment
+        self.particles = []
+        count = 40
+        for _ in range(count):
+            self.particles.append({
+                'pos': QPoint(random.randint(0, 1920), random.randint(0, 1080)),
+                'speed': random.uniform(0.5, 2.0),
+                'size': random.randint(2, 6),
+                'alpha': random.randint(50, 150),
+                'phase': random.uniform(0, 6.28)
+            })
+
+    def play_ui_sfx(self, sfx_key, ingredient_name=None):
         """Global helper to play UI sounds."""
-        if sfx_key in SFX_FILES:
+        path = None
+        if ingredient_name:
+            path = SFX_FILES.get("ingredients", {}).get(ingredient_name)
+        elif sfx_key in SFX_FILES:
             path = SFX_FILES[sfx_key]
-            if path.exists():
-                player = QMediaPlayer(self)
-                player.setAudioOutput(self.audio_output)
-                player.setSource(QUrl.fromLocalFile(str(path)))
-                player.play()
+            
+        if path and path.exists():
+            # Create a one-shot player that cleans up after itself
+            player = QMediaPlayer(self)
+            output = QAudioOutput(player)
+            player.setAudioOutput(output)
+            output.setVolume(self.audio_output.volume())
+            # Use resolve() to handle absolute paths with spaces on Windows
+            player.setSource(QUrl.fromLocalFile(str(path.resolve())))
+            player.play()
 
     def update_music(self, location_id):
         new_music_file = LOCATIONS.get(location_id, LOCATIONS[1]).get("music_file", MUSIC_FILE)
         if new_music_file.exists() and new_music_file != self.current_music_file:
-            self.player.setSource(QUrl.fromLocalFile(str(new_music_file)))
+            # Stop before changing source to ensure FFmpeg releases the file handle
+            self.player.stop()
+            self.player.setSource(QUrl.fromLocalFile(str(new_music_file.resolve())))
             self.player.play()
             self.current_music_file = new_music_file
 
     def update_bg(self):
-        for cloud in self.bg_clouds:
-            self.time_counter += 0.01
-            cloud['pos'].setX(cloud['pos'].x() - cloud['speed'])
-            if cloud['pos'].x() < -cloud['size']:
-                cloud['pos'].setX(self.width() + cloud['size'])
+        self.time_counter += 0.01
         
-        self.sun_angle = (self.sun_angle + 1) % 360
-        for bird in self.sandwich_birds:
-            bird['pos'].setX(bird['pos'].x() - bird['speed'])
-            bird['flap'] += 0.3
-            if bird['pos'].x() < -100:
-                bird['pos'].setX(self.width() + 100)
-                bird['pos'].setY(random.randint(50, 400))
-
+        # Update atmospheric particles
+        loc_id = self.current_bg_id
+        for p in self.particles:
+            if loc_id == 4: # Mars: Horizontal sand drift
+                p['pos'].setX(int(p['pos'].x() - (p['speed'] * 5)))
+                if p['pos'].x() < -50: p['pos'].setX(self.width() + 50)
+            elif loc_id == 5: # Jupiter: Fast chaotic movement
+                p['pos'].setY(int(p['pos'].y() + (p['speed'] * 8)))
+                p['pos'].setX(int(p['pos'].x() + math.sin(self.time_counter + p['phase']) * 5))
+                if p['pos'].y() > self.height() + 50: p['pos'].setY(-50)
+            else: # Default: Gentle float
+                p['pos'].setY(int(p['pos'].y() - p['speed']))
+                p['pos'].setX(int(p['pos'].x() + math.sin(self.time_counter + p['phase'])))
+                if p['pos'].y() < -50: p['pos'].setY(self.height() + 50)
         self.update()
 
     def paintEvent(self, event):
-        loc_id = 1
-        if hasattr(self, 'game_screen') and self.game_screen.session:
-            loc_id = self.game_screen.session.get('location_id', 1)
-            
+        loc_id = self.current_bg_id
         loc_data = LOCATIONS.get(loc_id, LOCATIONS[1])
         sky_colors = loc_data.get('sky', [COLORS["sky_top"], COLORS["sky_bottom"]])
+
+        # 0. Parallax Math
+        px = math.sin(self.time_counter * 0.5) * 15
+        py = math.cos(self.time_counter * 0.3) * 10
 
         # Screen Shake
         sx, sy = 0, 0
@@ -2237,7 +2291,7 @@ class MainWindow(QMainWindow):
             base_shake = self.shake_intensity + (2 if loc_id == 5 else 0)
             sx = random.randint(-base_shake, base_shake)
             sy = random.randint(-base_shake, base_shake)
-
+        
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
@@ -2247,27 +2301,47 @@ class MainWindow(QMainWindow):
             painter.drawRect(self.rect())
             painter.setOpacity(1.0)
 
-        # Black Hole Distortion
+        # 1. Background with Parallax
+        painter.save()
+        painter.translate(sx + px, sy + py)
+        if self.current_bg_pixmap:
+            # Scale up slightly to avoid seeing edges during parallax/shake
+            painter.drawPixmap(self.rect().adjusted(-40, -40, 40, 40), self.current_bg_pixmap)
+        else:
+            gradient = QLinearGradient(0, 0, 0, self.height())
+            gradient.setColorAt(0.0, QColor(sky_colors[0]))
+            gradient.setColorAt(1.0, QColor(sky_colors[1]))
+            painter.fillRect(self.rect().adjusted(-10, -10, 10, 10), gradient)
+        painter.restore()
+
+        # 2. Black Hole Distortion (Applied to overlays)
         if loc_id == 6:
             warp_x = math.sin(self.time_counter * 2) * 8
             warp_y = math.cos(self.time_counter * 1.5) * 8
             painter.translate(warp_x, warp_y)
             painter.scale(1.0 + math.sin(self.time_counter) * 0.01, 1.0 + math.cos(self.time_counter) * 0.01)
 
-        # Sky Gradient
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0.0, QColor(sky_colors[0]))
-        gradient.setColorAt(1.0, QColor(sky_colors[1]))
-        painter.translate(sx, sy)
-        painter.fillRect(self.rect().adjusted(-10, -10, 10, 10), gradient)
-
-        # Background Clouds
+        # 3. Atmospheric Particles
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(255, 255, 255, 60))
-        for cloud in self.bg_clouds:
-            painter.drawEllipse(cloud['pos'].x(), cloud['pos'].y(), cloud['size'], cloud['size'] // 2)
+        for p in self.particles:
+            p_color = QColor(255, 255, 255, p['alpha']) # Default white
+            
+            if loc_id == 1: p_color = QColor(150, 255, 150, p['alpha']) # Garden: Pollen/Leaves
+            elif loc_id == 2: p_color = QColor(255, 200, 100, p['alpha'] // 2) # Shop: Warm Dust
+            elif loc_id == 4: p_color = QColor(255, 100, 50, p['alpha']) # Mars: Red Sand
+            elif loc_id == 5: p_color = QColor(200, 230, 255, p['alpha']) # Jupiter: Blue Sparks
+            elif loc_id == 6: p_color = QColor(180, 100, 255, p['alpha']) # Void: Purple Essence
+            
+            painter.setBrush(p_color)
+            painter.drawEllipse(p['pos'], p['size'], p['size'])
 
-        # Hide sun on Moon/Void
+        # 4. Vignette Overlay (Gives depth and focuses center)
+        vignette = QRadialGradient(self.width()//2, self.height()//2, self.width()//1.5)
+        vignette.setColorAt(0, QColor(0, 0, 0, 0))
+        vignette.setColorAt(1, QColor(0, 0, 0, 150))
+        painter.fillRect(self.rect(), vignette)
+
+        # 5. Stars (Static Overlays)
         if loc_id in [3, 6]:
             # Draw stars on Moon/Void
             painter.setPen(Qt.PenStyle.NoPen)
@@ -2283,48 +2357,6 @@ class MainWindow(QMainWindow):
                 painter.drawEllipse(x, y, size, size)
             random.seed()  # Reset seed
             return
-
-        # Draw Sandwich Birds
-        for bird in self.sandwich_birds:
-            painter.save()
-            painter.translate(bird['pos'])
-            flap_y = math.sin(bird['flap']) * 10
-            
-            painter.setPen(QPen(QColor("#8d6e63"), 2))
-            painter.setBrush(QBrush(QColor("#d7ccc8")))
-            painter.drawRoundedRect(0, 5 + int(flap_y/2), 45, 14, 5, 5)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QBrush(QColor("#ffeb3b")))
-            painter.drawRect(3, 2, 39, 6)
-            painter.setPen(QPen(QColor("#8d6e63"), 2))
-            painter.setBrush(QBrush(QColor("#d7ccc8")))
-            painter.drawRoundedRect(0, -10 - int(flap_y/2), 45, 14, 5, 5)
-            painter.restore()
-
-        # Draw Sun
-        sun_x, sun_y = self.width() - 150, 120
-        painter.save()
-        painter.translate(sun_x, sun_y)
-        
-        painter.setPen(QPen(QColor("#ffb300"), 8, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-        painter.save()
-        painter.rotate(self.sun_angle)
-        for _ in range(12):
-            painter.rotate(30)
-            painter.drawLine(0, 65, 0, 95)
-        painter.restore()
-        
-        painter.setPen(QPen(QColor("#ffa000"), 4))
-        painter.setBrush(QBrush(QColor("#ffca28")))
-        painter.drawEllipse(-55, -55, 110, 110)
-        
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(QColor("#3e2723")))
-        painter.drawEllipse(-22, -18, 10, 10)
-        painter.drawEllipse(12, -18, 10, 10)
-        painter.setPen(QPen(QColor("#3e2723"), 5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-        painter.drawArc(-25, -10, 50, 45, 0, -180 * 16)
-        painter.restore()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
