@@ -8123,6 +8123,58 @@
             "value": 3080000000000.0005,
             "day": 21,
             "location": "Jupiter Floating Bar"
+        },
+        {
+            "name": "The Juicy Pile",
+            "ingredients": [
+                "Fresh Tomato"
+            ],
+            "value": 10,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Juicy Behemoth",
+            "ingredients": [
+                "Fresh Tomato",
+                "Fresh Tomato"
+            ],
+            "value": 20,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Juicy Creation",
+            "ingredients": [
+                "Fresh Tomato",
+                "Fresh Tomato",
+                "Fresh Tomato",
+                "Fresh Tomato",
+                "Fresh Tomato"
+            ],
+            "value": 50,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Garden Delight",
+            "ingredients": [
+                "Fresh Tomato"
+            ],
+            "value": -5.0,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Crispy Stack",
+            "ingredients": [
+                "Bread",
+                "Bread",
+                "Bread"
+            ],
+            "value": -7.5,
+            "day": 1,
+            "location": "Your Front Garden"
         }
     ]
 }

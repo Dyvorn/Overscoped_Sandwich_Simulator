@@ -1694,51 +1694,73 @@ class GameScreen(QWidget):
         
         # Order Matching
         matched = sorted(self.current_sandwich) == sorted(self.current_order)
-        multiplier = 3.0 if matched else 1.1
-        
-        # Secret Recipe Bonus
-        secret_bonus = 1.0
-        recipe_name_found = None
-        current_sandwich_tuple = tuple(sorted(self.current_sandwich))
-        for recipe_name, recipe_data in SECRET_RECIPES.items():
-            if current_sandwich_tuple == tuple(sorted(recipe_data["ingredients"])):
-                secret_bonus = recipe_data["bonus_mult"]
-                recipe_name_found = recipe_name
-                # Recipe boost upgrade doubles it
-                if "recipe_boost" in self.session.get('upgrades', []):
-                    secret_bonus *= 2
-                
-                # Track discovered recipes
-                discovered = self.session.get('discovered_recipes', [])
-                if recipe_name not in discovered:
-                    discovered.append(recipe_name)
-                    self.session['discovered_recipes'] = discovered
-                    self.log_message(f"<span style='color: #9c27b0;'>NEW SECRET RECIPE DISCOVERED: {recipe_name}! x{int(secret_bonus)} Bonus!</span>")
-                    self.add_lore_entry(f"Discovered the secret recipe: '{recipe_name}'!")
-                else:
-                    self.log_message(f"<span style='color: #9c27b0;'>Secret Recipe: {recipe_name}! x{int(secret_bonus)} Bonus!</span>")
-                break
+        loc_mult = self.current_location.get('profit_mult', 1)
+        diff = self.session.get('difficulty', 'NORMAL')
 
-        # Spiciness Bonus
-        spice_bonus = 1.0 + (self.spiciness / 100.0)
+        if matched:
+            multiplier = 3.0
+            # Secret Recipe Bonus
+            secret_bonus = 1.0
+            recipe_name_found = None
+            current_sandwich_tuple = tuple(sorted(self.current_sandwich))
+            for recipe_name, recipe_data in SECRET_RECIPES.items():
+                if current_sandwich_tuple == tuple(sorted(recipe_data["ingredients"])):
+                    secret_bonus = recipe_data["bonus_mult"]
+                    recipe_name_found = recipe_name
+                    # Recipe boost upgrade doubles it
+                    if "recipe_boost" in self.session.get('upgrades', []):
+                        secret_bonus *= 2
+                    
+                    # Track discovered recipes
+                    discovered = self.session.get('discovered_recipes', [])
+                    if recipe_name not in discovered:
+                        discovered.append(recipe_name)
+                        self.session['discovered_recipes'] = discovered
+                        self.log_message(f"<span style='color: #9c27b0;'>NEW SECRET RECIPE DISCOVERED: {recipe_name}! x{int(secret_bonus)} Bonus!</span>")
+                        self.add_lore_entry(f"Discovered the secret recipe: '{recipe_name}'!")
+                    else:
+                        self.log_message(f"<span style='color: #9c27b0;'>Secret Recipe: {recipe_name}! x{int(secret_bonus)} Bonus!</span>")
+                    break
 
-        # Achievement Permanent Multipliers
-        ach_mult = 1.0
-        unlocked_achs = self.session.get('achievements_unlocked', [])
-        for name, ach in ACHIEVEMENTS.items():
-            if name in unlocked_achs and ach['reward'].startswith("money_mult_"):
-                ach_mult *= float(ach['reward'].replace("money_mult_", ""))
+            # Spiciness Bonus
+            spice_bonus = 1.0 + (self.spiciness / 100.0)
+
+            # Achievement Permanent Multipliers
+            ach_mult = 1.0
+            unlocked_achs = self.session.get('achievements_unlocked', [])
+            for name, ach in ACHIEVEMENTS.items():
+                if name in unlocked_achs and ach['reward'].startswith("money_mult_"):
+                    ach_mult *= float(ach['reward'].replace("money_mult_", ""))
+
+            # Market event value changes
+            market_value_mult = self.current_market_event.get('value_mult', 1.0)
+            # Value boost upgrade
+            value_boost = 1.25 if "value_boost" in self.session.get('upgrades', []) else 1.0
+            
+            total_value = (sum(INGREDIENTS[i]['value'] for i in self.current_sandwich) * 
+                           multiplier * loc_mult * spice_bonus * (1 + self.hype) * 
+                           secret_bonus * market_value_mult * value_boost * ach_mult)
+        else:
+            # Mismatch logic based on difficulty
+            raw_cost = sum(INGREDIENTS[i]['cost'] for i in self.current_sandwich)
+            raw_value = sum(INGREDIENTS[i]['value'] for i in self.current_sandwich)
+            
+            if diff == "EASY":
+                # Get raw value, but no order bonus or other multipliers
+                total_value = raw_value * loc_mult
+            elif diff == "NORMAL":
+                # Exactly what you paid (refunding costs)
+                total_value = raw_cost * loc_mult
+            else: # OVER-SCOPED
+                # Lose money proportional to what you spent
+                total_value = -0.5 * raw_cost * loc_mult
 
         # Location Inflation
-        loc_mult = self.current_location.get('profit_mult', 1)
+        # loc_mult = self.current_location.get('profit_mult', 1) # Moved up
         # Market event value changes
-        market_value_mult = self.current_market_event.get('value_mult', 1.0)
+        # market_value_mult = self.current_market_event.get('value_mult', 1.0) # Used only in matched
         # Value boost upgrade
-        value_boost = 1.25 if "value_boost" in self.session.get('upgrades', []) else 1.0
-        
-        total_value = (sum(INGREDIENTS[i]['value'] for i in self.current_sandwich) * 
-                       multiplier * loc_mult * spice_bonus * (1 + self.hype) * 
-                       secret_bonus * market_value_mult * value_boost * ach_mult)
+        # value_boost = 1.25 if "value_boost" in self.session.get('upgrades', []) else 1.0 # Used only in matched
         
         self.session['money'] += total_value
         self.day_gross += total_value
