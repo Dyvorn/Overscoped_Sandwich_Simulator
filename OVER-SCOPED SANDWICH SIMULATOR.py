@@ -14,11 +14,19 @@ from PyQt6.QtWidgets import (
 )
 
 # --- Configuration & Constants ---
-BASE_DIR = Path(__file__).resolve().parent
-SAVE_FILE = BASE_DIR / "save_data.json"
-COLLECTIBLES_FILE = BASE_DIR / "collectibles.json"
-SOUNDS_DIR = BASE_DIR / "sounds"
-IMAGES_DIR = BASE_DIR / "images"
+if getattr(sys, 'frozen', False):
+    # Running as a bundled executable
+    RESOURCE_DIR = Path(sys._MEIPASS)
+    DATA_DIR = Path(sys.executable).resolve().parent
+else:
+    # Running in normal Python environment
+    RESOURCE_DIR = Path(__file__).resolve().parent
+    DATA_DIR = RESOURCE_DIR
+
+SAVE_FILE = DATA_DIR / "save_data.json"
+COLLECTIBLES_FILE = DATA_DIR / "collectibles.json"
+SOUNDS_DIR = RESOURCE_DIR / "sounds"
+IMAGES_DIR = RESOURCE_DIR / "images"
 MUSIC_FILE = SOUNDS_DIR / "background_music.mp3"
 
 COLORS = {
