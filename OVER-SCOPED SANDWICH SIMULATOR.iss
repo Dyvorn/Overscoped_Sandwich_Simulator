@@ -4,7 +4,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{A7C1E2D3-4B5C-4D6E-8F9A-0B1C2D3E4F5G} 
+AppId={{A7C1E2D3-4B5C-4D6E-8F9A-0B1C2D3E4F5F}}
 AppName=Overscoped Sandwich Simulator
 AppVersion=1.0
 AppPublisher=Lennard Finn Penzler
@@ -28,12 +28,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 ; Main executable built by PyInstaller
 Source: "dist\Overscoped Sandwich Simulator.exe"; DestDir: "{app}"; Flags: ignoreversion
 
-; Sounds folder
-Source: "sounds\*"; DestDir: "{app}\sounds"; Flags: ignoreversion createallsubdirs
-
-; Images folder
-Source: "images\*"; DestDir: "{app}\images"; Flags: ignoreversion createallsubdirs
-
 ; Optional: If you have a license.txt file, create it and uncomment the line below
 ; Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -42,10 +36,6 @@ Source: "images\*"; DestDir: "{app}\images"; Flags: ignoreversion createallsubdi
 ; Source: "collectibles.json"; DestDir: "{app}"; Flags: ignoreversion
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-
-[Dirs]
-Name: "{app}\sounds"
-Name: "{app}\images"
 
 [Icons]
 Name: "{autoprograms}\Overscoped Sandwich Simulator"; Filename: "{app}\Overscoped Sandwich Simulator.exe"

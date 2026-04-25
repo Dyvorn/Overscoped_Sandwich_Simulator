@@ -17,7 +17,8 @@ from PyQt6.QtWidgets import (
 if getattr(sys, 'frozen', False):
     # Running as a bundled executable
     RESOURCE_DIR = Path(sys._MEIPASS)
-    DATA_DIR = Path(sys.executable).resolve().parent
+    DATA_DIR = Path(os.environ.get("APPDATA", Path.home())) / "Overscoped Sandwich Simulator"
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 else:
     # Running in normal Python environment
     RESOURCE_DIR = Path(__file__).resolve().parent
