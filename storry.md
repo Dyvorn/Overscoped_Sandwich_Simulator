@@ -149,3 +149,19 @@ Game Over: “Lost to flavor singularity.”
 - [x] **Endless Mode**: Detect a "Game Completed" flag in `save_data.json` to unlock a new "Infinite Void" button on the Main Menu wich is an endless mode that plays in the black hole.
 - [x] **Lore Log**: A text-based collection of all encountered customer feedback and story snippets to track the history of your empire. 
 - [x] **Colectables:** A historry of every sandwich you ever made with names. Also another tab with items you can colect trough the storry. (Colectables are for all saves the same so if colected ones you cant colect it a second time.)
+
+
+
+
+
+
+1. Brote sollten realisstisch sein (Brot starten und enden dazwischen keine brote)
+2. Patience an länge der bestellung anpassen
+3. Buttons texte fixen.
+4. Story adden
+5. freez game wenn in "cutscene " oder lese popup
+6. Sandsturm audf mars soll ingredients mischen sodass man nicht weiß was man da wirklich hat.
+7. Heat soll actually gefäöhrlöich sein.
+8. dificulty anpassen man soll auch verlieren können.
+9. Tag endet nach einigen Besuchern.
+
