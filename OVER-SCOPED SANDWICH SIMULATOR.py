@@ -26,7 +26,6 @@ else:
 
 SAVE_FILE = DATA_DIR / "save_data.json"
 COLLECTIBLES_FILE = DATA_DIR / "collectibles.json"
-STORY_EVENTS_FILE = RESOURCE_DIR / "story_events.json"
 SOUNDS_DIR = RESOURCE_DIR / "sounds"
 IMAGES_DIR = RESOURCE_DIR / "images"
 MUSIC_FILE = SOUNDS_DIR / "background_music.mp3"
@@ -67,14 +66,7 @@ GAME_COLORS = {
     "Martian Pepper": "#ff5722",
     "Storm Pickles": "#4caf50",
     "Void Matter": "#212121",
-    "Plate": "#cfd8dc",
-    "Burnt": "#3e2723"
-}
-
-DIFFICULTY_SETTINGS = {
-    "EASY": {"hearts": 5, "patience_base": 20, "patience_bonus": 5, "hazard_chance": 0.1, "order_range": (2, 3)},
-    "NORMAL": {"hearts": 3, "patience_base": 15, "patience_bonus": 3, "hazard_chance": 0.2, "order_range": (2, 5)},
-    "OVER-SCOPED": {"hearts": 1, "patience_base": 8, "patience_bonus": 2, "hazard_chance": 0.4, "order_range": (4, 8)}
+    "Plate": "#cfd8dc"
 }
 
 LOCATIONS = {
@@ -399,7 +391,7 @@ def load_collectibles():
         except:
             pass
     return {"collected": [], "sandwich_history": []}
-    
+
 
 def save_collectibles(data):
     """Save global collectibles to file."""
@@ -420,7 +412,6 @@ class SandwichRenderer(QWidget):
         self.wobble = 0
         self.time_val = 0
         self.anim_timer = QTimer(self)
-        self.burnt_indices = []
         self.sandstorm_active = False
         self.anim_timer.timeout.connect(self.update_animations)
         self.anim_timer.start(16)
@@ -428,14 +419,11 @@ class SandwichRenderer(QWidget):
     def add_ingredient(self, name):
         self.ingredients.append(name)
         self.offsets[len(self.ingredients) - 1] = 100.0
-        if name.startswith("[BURNT]"):
-            self.burnt_indices.append(len(self.ingredients) - 1)
         self.update()
 
     def clear(self):
         self.ingredients = []
         self.offsets = {}
-        self.burnt_indices = []
         self.sandstorm_active = False
         self.update()
 
@@ -507,21 +495,10 @@ class SandwichRenderer(QWidget):
             
             rect = QRect(cx - 100, bottom_y - (i + 1) * layer_height - int(offset), 200, layer_height)
             
-            # Check if burnt
-            is_burnt = i in self.burnt_indices
-            actual_color = QColor(color)
-            if is_burnt:
-                actual_color = QColor(GAME_COLORS["Burnt"])
-            
-            painter.setBrush(actual_color)
+            painter.setBrush(QColor(color))
             painter.setPen(QPen(QColor(0, 0, 0, 50), 2))
             painter.drawRoundedRect(rect, 10, 10)
             
-            if is_burnt:
-                # Add small burn smoke/icon
-                painter.setPen(QPen(QColor(255, 255, 255, 100), 1))
-                painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, "🔥")
-
             # Jupiter: Storm Pickle Crackle
             if is_jupiter and ing == "Storm Pickles":
                 painter.setPen(QPen(QColor("#ffffff"), 2))
@@ -578,7 +555,7 @@ class StoryOverlay(QWidget):
             btn_layout.addWidget(btn_b)
             layout.addLayout(btn_layout)
         else:
-            btn = JuicyButton("Continue")
+            btn = JuicyButton("CONTINUE")
             btn.setFixedWidth(200)
             btn.clicked.connect(self.close_and_continue)
             layout.addWidget(btn, 0, Qt.AlignmentFlag.AlignCenter)
@@ -602,7 +579,6 @@ class Screen:
     SAVE_SLOTS = 1
     GAME = 2
     UPGRADE_SHOP = 3
-    GAME_OVER = 4
 
 
 class JuicyButton(QPushButton):
@@ -639,7 +615,7 @@ class JuicyButton(QPushButton):
                 background-color: {bg_col};
                 color: {COLORS["text_dark"]};
                 border-radius: 30px;
-                font-size: 20px;
+                font-size: 24px;
                 font-weight: bold;
                 padding: 8px;
                 border: 4px solid {border_col};
@@ -764,7 +740,7 @@ class MainMenu(QWidget):
         cloud_container.addWidget(self.cloud_title)
         main_layout.addLayout(cloud_container)
         main_layout.addSpacing(10)
-        
+
         # Endless Mode Button (Hidden by default)
         self.endless_btn = JuicyButton("INFINITE VOID (ENDLESS)")
         self.endless_btn.setStyleSheet(self.endless_btn.styleSheet() + "background-color: #4a148c; color: white;")
@@ -772,7 +748,7 @@ class MainMenu(QWidget):
         self.endless_btn.hide()
         self.check_endless_unlocked()
 
-        # Subtitle - Title Case
+        # Subtitle
         subtitle = QLabel("THE ULTIMATE OVER-ENGINEERED LUNCH EXPERIENCE")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle.setStyleSheet(
@@ -786,7 +762,7 @@ class MainMenu(QWidget):
         vol_container = QWidget()
         vol_container.setFixedWidth(400)
         vol_inner_layout = QHBoxLayout(vol_container)
-
+        
         vol_label = QLabel("AUDIO")
         vol_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #ffffff; background: transparent;")
         
@@ -815,7 +791,7 @@ class MainMenu(QWidget):
         button_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         button_layout.setSpacing(20)
 
-        play_button = JuicyButton("Start Game")
+        play_button = JuicyButton("START GAME")
         play_button.clicked.connect(self.on_play)
         
         button_layout.addWidget(play_button)
@@ -841,7 +817,7 @@ class MainMenu(QWidget):
             except:
                 pass
 
-    def on_endless(self): 
+    def on_endless(self):
         endless_data = {
             "name": "The Eternal Chef", "day": 1, "money": 100000000, 
             "rank": "Void Legend", "difficulty": "OVER-SCOPED",
@@ -850,8 +826,7 @@ class MainMenu(QWidget):
             "upgrades": list(UPGRADES.keys()),  # All upgrades in endless
             "total_served": 0, "perfect_streak": 0,
             "ingredient_counts": {}, "discovered_recipes": [],
-            "achievements_unlocked": [], "story_events_triggered": [],
-            "hearts": 1, "loan_amount": 0, "loan_interest_rate": 0,
+            "achievements_unlocked": [], "loan_amount": 0, "loan_interest_rate": 0,
             "sandwich_history": [],
         }
         if self.switch_callback:
@@ -894,14 +869,14 @@ class SaveSlotMenu(QWidget):
                     return {int(k): v for k, v in data.items()}
             except Exception as e:
                 print(f"Error loading save: {e}")
-        return {1: None, 2: None, 3: None} 
+        return {1: None, 2: None, 3: None}
 
     def save_to_file(self):
         try:
             with open(SAVE_FILE, 'w') as f:
                 json.dump(self.save_slots, f, indent=4)
         except Exception as e:
-            print(f"Error saving to file: {e}") 
+            print(f"Error saving to file: {e}")
 
     def get_slot_text(self, slot_id):
         data = self.save_slots.get(slot_id)
@@ -914,7 +889,7 @@ class SaveSlotMenu(QWidget):
         layout = QVBoxLayout()
         layout.addStretch(1)
 
-        title = QLabel("Select Save Slot")
+        title = QLabel("SELECT SAVE SLOT")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-size: 40px; font-weight: bold; color: #ffffff; letter-spacing: 2px;")
         layout.addWidget(title)
@@ -935,7 +910,7 @@ class SaveSlotMenu(QWidget):
         details_layout = QVBoxLayout()
         details_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        name_label = QLabel("Name Your Sandwich Empire:")
+        name_label = QLabel("NAME YOUR SANDWICH EMPIRE:")
         name_label.setStyleSheet("font-size: 18px; color: #ffffff; font-weight: bold;")
         details_layout.addWidget(name_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
@@ -960,7 +935,7 @@ class SaveSlotMenu(QWidget):
         diff_layout = QHBoxLayout()
         diff_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         diff_label = QLabel("DIFFICULTY:")
-        diff_label.setStyleSheet("font-size: 18px; color: #ffffff; font-weight: bold; margin-right: 10px;") 
+        diff_label.setStyleSheet("font-size: 18px; color: #ffffff; font-weight: bold; margin-right: 10px;")
         diff_layout.addWidget(diff_label)
 
         for level in ["EASY", "NORMAL", "OVER-SCOPED"]:
@@ -977,21 +952,21 @@ class SaveSlotMenu(QWidget):
         layout.addStretch(1)
 
         nav_layout = QHBoxLayout()
-        self.back_btn = JuicyButton("Back")
+        self.back_btn = JuicyButton("BACK")
         self.back_btn.setFixedWidth(200)
         self.back_btn.clicked.connect(lambda: self.switch_callback(Screen.MAIN_MENU))
 
-        self.delete_btn = JuicyButton("Delete")
+        self.delete_btn = JuicyButton("DELETE")
         self.delete_btn.setFixedWidth(200)
         self.delete_btn.clicked.connect(self.on_delete_clicked)
         self.delete_btn.hide()
         
-        self.loan_btn = JuicyButton("Take Loan")
+        self.loan_btn = JuicyButton("TAKE LOAN")
         self.loan_btn.setFixedWidth(200)
         self.loan_btn.clicked.connect(self.on_take_loan)
         self.loan_btn.hide()
 
-        self.start_btn = JuicyButton("Ready!")
+        self.start_btn = JuicyButton("READY!")
         self.start_btn.setFixedWidth(300)
         self.start_btn.clicked.connect(self.on_ready_clicked)
 
@@ -1070,8 +1045,6 @@ class SaveSlotMenu(QWidget):
                 "difficulty": self.selected_diff, "location_id": 1, "unlocked": ["Bread", "Fresh Tomato"],
                 "hype": 0.0, "loan_amount": 0, "loan_interest_rate": 0,
                 "upgrades": [], "total_served": 0, "perfect_streak": 0,
-                "hearts": DIFFICULTY_SETTINGS[self.selected_diff]["hearts"],
-                "story_events_triggered": [],
                 "ingredient_counts": {}, "discovered_recipes": [],
                 "achievements_unlocked": [], "sandwich_history": [],
             }
@@ -1100,15 +1073,12 @@ class SaveSlotMenu(QWidget):
                 "name": shop_name, 
                 "day": 1, 
                 "money": 100, 
-                "rank": "Beginner Chef",
-                "hearts": DIFFICULTY_SETTINGS[self.selected_diff]["hearts"],
+                "rank": "Beginner Chef", 
                 "difficulty": self.selected_diff,
                 "location_id": 1,
                 "unlocked": ["Bread", "Fresh Tomato"],
                 "loan_amount": 0,
                 "loan_interest_rate": 0,
-                "customers_today": 0,
-                "story_events_triggered": [],
                 "hype": 0.0,
                 "upgrades": [],
                 "total_served": 0,
@@ -1122,13 +1092,11 @@ class SaveSlotMenu(QWidget):
             self.save_slots[self.selected_slot]["name"] = shop_name
             self.save_slots[self.selected_slot]["difficulty"] = self.selected_diff
             # Ensure new fields exist for old saves
-            self.save_slots[self.selected_slot].setdefault("hearts", 3)
             self.save_slots[self.selected_slot].setdefault("upgrades", [])
             self.save_slots[self.selected_slot].setdefault("total_served", 0)
             self.save_slots[self.selected_slot].setdefault("perfect_streak", 0)
             self.save_slots[self.selected_slot].setdefault("ingredient_counts", {})
             self.save_slots[self.selected_slot].setdefault("discovered_recipes", [])
-            self.save_slots[self.selected_slot].setdefault("story_events_triggered", [])
             self.save_slots[self.selected_slot].setdefault("achievements_unlocked", [])
             self.save_slots[self.selected_slot].setdefault("sandwich_history", [])
 
@@ -1150,7 +1118,7 @@ class UpgradeShopScreen(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
         
-        title = QLabel("Upgrade Shop")
+        title = QLabel("UPGRADE SHOP")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-size: 40px; font-weight: bold; color: #ffca28; letter-spacing: 2px;")
         layout.addWidget(title)
@@ -1180,7 +1148,7 @@ class UpgradeShopScreen(QWidget):
         
         layout.addSpacing(20)
         
-        continue_btn = JuicyButton("Continue To Next Location")
+        continue_btn = JuicyButton("CONTINUE TO NEXT LOCATION")
         continue_btn.clicked.connect(self.on_continue)
         layout.addWidget(continue_btn)
         layout.addSpacing(20)
@@ -1233,7 +1201,7 @@ class UpgradeShopScreen(QWidget):
             card_layout.addWidget(cost_lbl)
             
             if not is_owned and can_afford:
-                buy_btn = QPushButton("Buy")
+                buy_btn = QPushButton("BUY")
                 buy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
                 buy_btn.setStyleSheet("background: #4caf50; color: white; border-radius: 10px; font-weight: bold; padding: 5px; font-size: 14px; border: none;")
                 buy_btn.clicked.connect(lambda _, n=name, c=info['cost']: self.buy_upgrade(n, c))
@@ -1271,7 +1239,6 @@ class GameScreen(QWidget):
         self.day_waste = 0
         self.day_served = 0
         self.day_customers_lost = 0
-        self.is_paused = False
         self.current_market_event = MARKET_EVENTS["Normal Market"]
         self.active_order_text = ""
         self.customer_patience = 100
@@ -1282,16 +1249,14 @@ class GameScreen(QWidget):
         self.order_timer.timeout.connect(self.generate_order)
         self.hazard_timer = QTimer(self)
         self.hazard_timer.timeout.connect(self.trigger_environmental_hazard)
-        self.scrambled_ingredients = []
         self.sfx_achievement_player = QMediaPlayer()
 
         self.init_ui()
         self.spiciness = 0
-        self.last_hazard_time = 0
         self.decay_timer = QTimer(self)
         self.decay_timer.timeout.connect(self.mechanic_update)
 
-    def update_game_data(self, data): 
+    def update_game_data(self, data):
         """Initializes a new gameplay session with save data."""
         self.session = data 
         self.current_location = LOCATIONS.get(data.get('location_id', 1))
@@ -1303,7 +1268,6 @@ class GameScreen(QWidget):
         self.day_gross = 0
         self.day_waste = 0
         self.day_served = 0
-        self.session['customers_today'] = 0
         self.day_customers_lost = 0
         self.ingredient_discount = 1.0
         self.current_sandwich = []
@@ -1336,13 +1300,10 @@ class GameScreen(QWidget):
         
         self.effective_rent = rent
         
-        day_target = self.get_day_target()
-
         # Daily Briefing
         briefing = (
             f"{self.current_location['intro']}\n\n"
             f"MARKET: {self.current_market_event['message']}\n"
-            f"TODAY'S QUOTA: {day_target} Customers\n"
             f"RENT/TAX: {format_currency(self.effective_rent)}/day\n"
         )
         if data.get('loan_amount', 0) > 0:
@@ -1360,12 +1321,10 @@ class GameScreen(QWidget):
         except:
             pass
 
-        self.set_paused(False)
+        self.customer_patience = 100
+        self.customer_patience_timer.start(1000)
         self.show_story_popup("DAILY BRIEFING", briefing)
-        
-        self.check_story_events()
         self.generate_order()
-
         self.decay_timer.start(100)
 
         # Tutorial
@@ -1385,22 +1344,7 @@ class GameScreen(QWidget):
             self.window().solar_flare_active = False
             self.sandwich_visual.sandstorm_active = False
 
-    def get_day_target(self):
-        return 5 + (self.session['day'] - 1) * 2
-
-    def set_paused(self, paused: bool):
-        self.is_paused = paused
-        self.ingredients_container.setEnabled(not paused)
-        self.action_container.setEnabled(not paused)
-        if paused:
-            self.customer_patience_timer.stop()
-        elif self.current_order:
-            self.customer_patience_timer.start(1000)
-
     def mechanic_update(self):
-        if self.is_paused:
-            return
-            
         # Spiciness Decay
         spice_resist = "spice_resist" in self.session.get('upgrades', [])
         if self.spiciness > 0:
@@ -1419,7 +1363,7 @@ class GameScreen(QWidget):
 
         # Jupiter Jitter Effect
         if self.session.get('location_id') == 5 and hasattr(self, 'gravity_surge_active') and self.gravity_surge_active:
-            for i in range(self.ingredients_panel.count()): 
+            for i in range(self.ingredients_panel.count()):
                 w = self.ingredients_panel.itemAt(i).widget()
                 if w:
                     w.move(w.x() + random.randint(-3, 3), w.y() + random.randint(-3, 3))
@@ -1436,17 +1380,14 @@ class GameScreen(QWidget):
             self.refresh_stats()
 
     def decay_patience(self):
-        if self.is_paused:
-            return
-
         if self.current_order:
-            settings = DIFFICULTY_SETTINGS.get(self.session.get('difficulty', 'NORMAL'))
-            patience_decay = 100 / settings["patience_base"] # 100% / seconds
+            patience_decay = 5
+            if self.session.get('difficulty') == "OVER-SCOPED":
+                patience_decay = 15  # Faster decay
+            elif self.session.get('difficulty') == "EASY":
+                patience_decay = 3
             
-            # Martian Heat accelerates patience drain
-            if self.session.get('location_id') == 4 and self.spiciness > 50:
-                patience_decay *= 1.5
-
+            if "patience_boost" in self.session.get('upgrades', []):
                 patience_decay = max(1, int(patience_decay * 0.5))
             
             self.customer_patience = max(0, self.customer_patience - patience_decay)
@@ -1466,97 +1407,34 @@ class GameScreen(QWidget):
                     penalty *= 2
                 self.session['money'] = max(0, self.session['money'] - penalty)
                 self.hype = max(0, self.hype - 0.1)
-                self.session['hearts'] = max(0, self.session.get('hearts', 3) - 1)
                 self.session['hype'] = self.hype
                 self.day_customers_lost += 1
-                self.session['customers_today'] += 1
                 self.session['perfect_streak'] = 0
-                
-                if self.session['hearts'] <= 0:
-                    self.trigger_game_over()
-                    return
-
                 self.current_order = []
                 self.current_sandwich = []
                 self.sandwich_visual.clear()
                 self.refresh_stats()
-                
-                if self.session['customers_today'] >= self.get_day_target():
-                    self.next_day()
-                else:
-                    self.generate_order()
-
-    def trigger_game_over(self):
-        self.set_paused(True)
-        stats = (f"Empire: {self.session['name']}\n"
-                 f"Last Location: {self.current_location['name']}\n"
-                 f"Day: {self.session['day']}\n"
-                 f"Money: {format_currency(self.session['money'])}\n"
-                 f"Total Served: {self.session['total_served']}")
-        
-        self.show_story_popup("GAME OVER", f"Your empire has crumbled.\n\n{stats}", 
-            lambda: self.switch_callback(Screen.MAIN_MENU))
+                self.generate_order()
 
     def cool_down(self):
-        if self.is_paused: return
         self.spiciness = max(0, self.spiciness - 5)
         self.log_message("<span style='color: #03a9f4;'>Clicked to cool down!</span>")
-
-    def check_story_events(self):
-        """Loads and checks story events from JSON."""
-        if not STORY_EVENTS_FILE.exists():
-            return
-            
-        try:
-            with open(STORY_EVENTS_FILE, 'r') as f:
-                events = json.load(f)
-                
-            triggered = self.session.get('story_events_triggered', [])
-            for event in events:
-                if event['id'] in triggered: continue
-                
-                trigger = event['trigger']
-                should_fire = False
-                
-                if trigger['type'] == "location_day":
-                    should_fire = (self.session['location_id'] == trigger['location'] and 
-                                  self.session['day'] == trigger['day'])
-                elif trigger['type'] == "money_threshold":
-                    should_fire = (self.session['money'] >= trigger['amount'])
-                elif trigger['type'] == "location_start":
-                    should_fire = (self.session['location_id'] == trigger['location'])
-
-                if should_fire:
-                    triggered.append(event['id'])
-                    self.session['story_events_triggered'] = triggered
-                    self.show_story_popup(event['title'], event['text'])
-                    break
-        except Exception as e:
-            print(f"Story trigger error: {e}")
 
     def refresh_stats(self):
         money_str = format_currency(self.session['money'])
         hype_str = f" | Hype: {int(self.hype * 100)}%" if self.hype > 0 else ""
-        hearts_str = " | ❤️" * self.session.get('hearts', 0)
-        
+        loan_str = ""
+        if self.session.get('loan_amount', 0) > 0:
+            loan_str = f" | Loan: {format_currency(self.session['loan_amount'])} ({(self.session.get('loan_interest_rate', 0.1)*100):.0f}%)"
+
         spice_str = f" | HEAT: {int(self.spiciness)}%" if self.session.get('location_id') == 4 else ""
         self.stats_label.setText(
             f"Day: {self.session['day']} | Cash: {money_str} | Rank: {self.session['rank']}"
-            f"{hype_str}{hearts_str}{spice_str}"
+            f"{hype_str}{loan_str}{spice_str}"
         )
 
     def show_story_popup(self, title, message, callback=None, option_a=None, option_b=None, choice_callback=None):
-        self.set_paused(True)
-        
-        def wrapped_callback():
-            self.set_paused(False)
-            if callback: callback()
-            
-        def wrapped_choice(c):
-            self.set_paused(False)
-            if choice_callback: choice_callback(c)
-
-        self.overlay = StoryOverlay(title, message, wrapped_callback, option_a, option_b, wrapped_choice)
+        self.overlay = StoryOverlay(title, message, callback, option_a, option_b, choice_callback)
         self.overlay.setParent(self)
         geom = self.geometry()
         self.overlay.move((geom.width() - 600) // 2, (geom.height() - 450) // 2)
@@ -1567,30 +1445,21 @@ class GameScreen(QWidget):
         self.story_log.verticalScrollBar().setValue(self.story_log.verticalScrollBar().maximum())
 
     def generate_order(self):
-        if self.session.get('customers_today', 0) >= self.get_day_target():
-            return
-
         unlocked = self.session.get('unlocked', ["Bread"])
-        settings = DIFFICULTY_SETTINGS.get(self.session.get('difficulty', 'NORMAL'))
+        loc_id = self.session.get('location_id', 1)
         
-        num = random.randint(*settings["order_range"])
-        if self.session['location_id'] == 6:
-            num += 3
-            
-        # Order must always start and end with bread
-        fillings_count = num - 2
-        fillings = [random.choice(unlocked) for _ in range(fillings_count)]
-        # Filter out bread from fillings if any
-        fillings = [f for f in fillings if f != "Bread"]
+        num = random.randint(2, 4)
+        if loc_id == 6:
+            num = random.randint(6, 10)
         
-        self.current_order = ["Bread"] + fillings + ["Bread"]
-        
-        # Dynamic Patience
         self.customer_patience = 100
-        patience_seconds = settings["patience_base"] + (len(self.current_order) * settings["patience_bonus"])
-        # The timer ticks every 1000ms, so we calculate how much % 1 second takes
         self.patience_bar.setValue(100)
         self.customer_patience_timer.start(1000)
+            
+        self.current_order = [random.choice(unlocked) for _ in range(num)]
+        
+        if "Bread" in unlocked and "Bread" not in self.current_order:
+            self.current_order[0] = "Bread"
             
         self.active_order_text = ", ".join(self.current_order)
         self.display_current_order()
@@ -1606,34 +1475,30 @@ class GameScreen(QWidget):
             chars = list(self.active_order_text)
             random.shuffle(chars)
             display_text = "".join(chars)
-            self.log_message(f"<span style='color: #ffca28;'><b>Order:</b> <span style='background: #fff; color: #000;'>{display_text}</span> [SIGNAL LOST]</span>")
+            self.log_message(f"<span style='color: #ffca28;'><b>ORDER:</b> <span style='background: #fff; color: #000;'>{display_text}</span> [SIGNAL LOST]</span>")
         else:
-            self.log_message(f"<span style='color: #ffca28;'><b>Order:</b> Wants {self.active_order_text}</span>")
+            self.log_message(f"<span style='color: #ffca28;'><b>ORDER:</b> Wants {self.active_order_text}</span>")
 
     def setup_ingredients(self):
         for i in reversed(range(self.ingredients_panel.count())): 
             w = self.ingredients_panel.itemAt(i).widget()
             if w:
                 w.setParent(None)
-        
-        unlocked = self.session.get('unlocked', [])
-        display_names = list(unlocked)
-        
-        # Hazard: Sandstorm scrambles visual labels
-        if self.sandwich_visual.sandstorm_active:
-            random.shuffle(display_names)
-            self.log_message("<span style='color: #ff5252;'><b>SANDSTORM:</b> Ingredients Scrambled!</span>")
             
-        for i, ing in enumerate(unlocked):
+        for ing in self.session.get('unlocked', []):
             base_cost = INGREDIENTS[ing]['cost']
+            # Apply market event
             market_mult = 1.0
             if self.current_market_event.get('ingredient') == ing:
                 market_mult = self.current_market_event.get('cost_mult', 1.0)
             
             effective_cost = base_cost * market_mult * self.ingredient_discount
             
-            label = display_names[i] if self.sandwich_visual.sandstorm_active else ing
-            btn_text = f"{label} (${int(effective_cost)})"
+            # Hazard: Sandstorm hides info
+            if self.sandwich_visual.sandstorm_active:
+                btn_text = "??? ($ ???)"
+            else:
+                btn_text = f"{ing} (${int(effective_cost)})"
                 
             btn = JuicyButton(btn_text)
             btn.setFixedHeight(50)
@@ -1645,25 +1510,6 @@ class GameScreen(QWidget):
             self.ingredients_panel.addWidget(btn)
 
     def add_ingredient(self, name):
-        # 1. Realistic Bread Logic
-        if not self.current_sandwich:
-            if name != "Bread":
-                self.log_message("<span style='color: #ffca28;'>Bread goes on the bottom!</span>")
-                return
-        elif self.current_sandwich[-1] == "Bread" and len(self.current_sandwich) > 1:
-             self.log_message("<span style='color: #ffca28;'>Sandwich is already closed!</span>")
-             return
-        elif name == "Bread" and len(self.current_sandwich) == 1:
-             self.log_message("<span style='color: #ffca28;'>Add some fillings first!</span>")
-             return
-
-        # 7. Heat Hazard - Burning
-        actual_name = name
-        if self.session.get('location_id') == 4 and self.spiciness > 40:
-            if random.random() < 0.3:
-                actual_name = f"[BURNT] {name}"
-                self.log_message(f"<span style='color: #ff5252;'>Oops! The heat <b>BURNT</b> your {name}!</span>")
-
         base_cost = INGREDIENTS[name]['cost']
         market_mult = 1.0
         if self.current_market_event.get('ingredient') == name:
@@ -1673,8 +1519,8 @@ class GameScreen(QWidget):
         
         if self.session['money'] >= cost:
             self.session['money'] -= cost
-            self.current_sandwich.append(actual_name)
-            self.sandwich_visual.add_ingredient(actual_name)
+            self.current_sandwich.append(name)
+            self.sandwich_visual.add_ingredient(name)
             try:
                 self.window().play_ui_sfx("ingredients", ingredient_name=name)
             except:
@@ -1697,9 +1543,7 @@ class GameScreen(QWidget):
         if not self.current_sandwich:
             return
         waste_mult = 1.0 if self.session.get('difficulty') == "OVER-SCOPED" else 0.5
-        # strip [BURNT] prefix for cost lookup
-        raw_ingredients = [i.replace("[BURNT] ", "") for i in self.current_sandwich]
-        waste_fee = sum(INGREDIENTS[i]['cost'] for i in raw_ingredients) * waste_mult
+        waste_fee = sum(INGREDIENTS[i]['cost'] for i in self.current_sandwich) * waste_mult
         self.session['money'] = max(0, self.session['money'] - waste_fee)
         self.day_waste += waste_fee
         self.log_message(f"<span style='color: #ff5252;'>Sandwich trashed. Bio-Waste Fee: -{format_currency(waste_fee)}</span>")
@@ -1712,7 +1556,7 @@ class GameScreen(QWidget):
         
         # Header
         header = QHBoxLayout()
-        self.game_label = QLabel("Sandwich Empire")
+        self.game_label = QLabel("SANDWICH EMPIRE")
         self.game_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.game_label.setStyleSheet("font-size: 32px; font-weight: bold; color: #ffffff;")
         
@@ -1813,20 +1657,18 @@ class GameScreen(QWidget):
         self.prep_table.addWidget(self.sandwich_visual)
         
         # Right: Ingredients
-        self.ingredients_container = QWidget()
-        self.ingredients_panel = QVBoxLayout(self.ingredients_container)
+        self.ingredients_panel = QVBoxLayout()
         self.ingredients_panel.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         # Action Bar
-        self.action_container = QWidget()
-        actions = QHBoxLayout(self.action_container)
-        clear_btn = JuicyButton("Trash It")
+        actions = QHBoxLayout()
+        clear_btn = JuicyButton("TRASH IT")
         clear_btn.clicked.connect(self.clear_sandwich)
         
-        serve_btn = JuicyButton("Serve Sandwich")
+        serve_btn = JuicyButton("SERVE SANDWICH")
         serve_btn.clicked.connect(self.serve_sandwich)
         
-        next_day_btn = JuicyButton("End Day Early")
+        next_day_btn = JuicyButton("END DAY")
         next_day_btn.clicked.connect(self.next_day)
         
         actions.addWidget(clear_btn)
@@ -1835,10 +1677,10 @@ class GameScreen(QWidget):
         
         gameplay_layout.addLayout(left_panel)
         gameplay_layout.addLayout(self.prep_table, 1)
-        gameplay_layout.addWidget(self.ingredients_container)
+        gameplay_layout.addLayout(self.ingredients_panel)
         
         layout.addLayout(gameplay_layout, 1)
-        layout.addWidget(self.action_container)
+        layout.addLayout(actions)
 
         self.setLayout(layout)
 
@@ -1855,26 +1697,10 @@ class GameScreen(QWidget):
     def serve_sandwich(self):
         if not self.current_sandwich or not self.current_order:
             return
-
-        # Rule: Must have top bread to serve
-        if self.current_sandwich[-1] != "Bread" and not self.current_sandwich[-1].endswith("Bread"):
-            self.log_message("<span style='color: #ffca28;'>Close the sandwich with bread first!</span>")
-            return
         
         self.customer_patience_timer.stop()
         self.order_timer.stop()
         
-        # 7. Heat Hazard - Rejection if Burnt
-        has_burnt = any("[BURNT]" in i for i in self.current_sandwich)
-        if has_burnt:
-            self.log_message("<span style='color: #ff5252;'>Customer rejected the burnt sandwich!</span>")
-            self.session['hearts'] = max(0, self.session.get('hearts', 3) - 1)
-            if self.session['hearts'] <= 0:
-                self.trigger_game_over()
-                return
-            self.finish_serve(0, "Burnt Rejection")
-            return
-
         # Order Matching
         matched = sorted(self.current_sandwich) == sorted(self.current_order)
         loc_mult = self.current_location.get('profit_mult', 1)
@@ -1929,29 +1755,33 @@ class GameScreen(QWidget):
             raw_value = sum(INGREDIENTS[i]['value'] for i in self.current_sandwich)
             
             if diff == "EASY":
+                # Get raw value, but no order bonus or other multipliers
                 total_value = raw_value * loc_mult
             elif diff == "NORMAL":
+                # Exactly what you paid (refunding costs)
                 total_value = raw_cost * loc_mult
             else: # OVER-SCOPED
+                # Lose money proportional to what you spent
                 total_value = -0.5 * raw_cost * loc_mult
-            
-            # Lose a heart on wrong order
-            self.session['hearts'] = max(0, self.session.get('hearts', 3) - 1)
-            if self.session['hearts'] <= 0:
-                self.trigger_game_over()
-                return
 
-        self.finish_serve(total_value, generate_sandwich_name(self.current_sandwich), matched)
-
-    def finish_serve(self, total_value, sand_name, matched=False):
+        # Location Inflation
+        # loc_mult = self.current_location.get('profit_mult', 1) # Moved up
+        # Market event value changes
+        # market_value_mult = self.current_market_event.get('value_mult', 1.0) # Used only in matched
+        # Value boost upgrade
+        # value_boost = 1.25 if "value_boost" in self.session.get('upgrades', []) else 1.0 # Used only in matched
+        
         self.session['money'] += total_value
         self.day_gross += total_value
         self.day_served += 1
-        self.session['customers_today'] += 1
         
+        # Track total served
         self.session['total_served'] = self.session.get('total_served', 0) + 1
         
-        # History
+        # Generate sandwich name
+        sand_name = generate_sandwich_name(self.current_sandwich)
+        
+        # Add to sandwich history (collectibles)
         history = self.session.get('sandwich_history', [])
         history_entry = {
             "name": sand_name,
@@ -1961,9 +1791,18 @@ class GameScreen(QWidget):
             "location": self.current_location['name']
         }
         history.append(history_entry)
+        if len(history) > 100:  # Keep last 100
+            history = history[-100:]
         self.session['sandwich_history'] = history
         
-        save_collectibles(load_collectibles()) # Ensure synced
+        # Also add to global collectibles
+        global_collectibles = load_collectibles()
+        global_history = global_collectibles.get('sandwich_history', [])
+        global_history.append(history_entry)
+        if len(global_history) > 500:
+            global_history = global_history[-500:]
+        global_collectibles['sandwich_history'] = global_history
+        save_collectibles(global_collectibles)
         
         try:
             self.window().play_ui_sfx("serve_sandwich")
@@ -1972,16 +1811,29 @@ class GameScreen(QWidget):
         
         if matched:
             self.log_message(f"<span style='color: #4caf50;'>PERFECT MATCH! '{sand_name}' earned {format_currency(total_value)}</span>")
+            feedback = random.choice(CUSTOMER_FEEDBACK_POSITIVE)
+            self.log_message(f"<i style='color: #81c784;'>'{feedback}'</i>")
             self.hype = min(2.0, self.hype + 0.05)
             self.session['hype'] = self.hype
             self.session['perfect_streak'] = self.session.get('perfect_streak', 0) + 1
+            
+            # Tip based on hype
+            if random.random() < 0.3 + self.hype * 0.1:
+                tip = total_value * 0.15 * (1 + self.hype)
+                self.session['money'] += tip
+                self.log_message(f"<span style='color: #ffca28;'>TIP: +{format_currency(tip)}! Hype UP!</span>")
+        
+
+            self.add_lore_entry(f"Customer was delighted by your '{sand_name}'!")
         else:
-            self.log_message(f"Served '{sand_name}' for {format_currency(total_value)}.")
+            self.log_message(f"Served '{sand_name}' for {format_currency(total_value)} (Order mismatch).")
             self.session['perfect_streak'] = 0
         
+        # Check for collectibles
         self.check_collectible_drop()
+        
+        # Check achievements
         self.check_achievements()
-        self.check_story_events()
             
         self.current_sandwich = []
         self.current_order = []
@@ -1989,11 +1841,7 @@ class GameScreen(QWidget):
         self.spiciness = 0
         self.refresh_stats()
         self.update_tabs()
-
-        if self.session['customers_today'] >= self.get_day_target():
-            self.next_day()
-        else:
-            self.generate_order()
+        self.generate_order()
 
     def check_collectible_drop(self):
         """Check if a collectible drops after serving."""
@@ -2033,6 +1881,7 @@ class GameScreen(QWidget):
                 # Apply reward
                 reward = ach['reward']
                 if reward.startswith("money_mult_"):
+                    # Permanent multiplier stored as upgrade
                     mult_val = reward.replace("money_mult_", "")
                     self.log_message(f"<span style='color: #4caf50;'>Reward: Permanent {mult_val}x profit multiplier!</span>")
                 elif reward.startswith("money_"):
@@ -2094,11 +1943,11 @@ class GameScreen(QWidget):
             self.save_callback()
         
         if is_win:
-            title = "The 6 Quintillion Dollar Dream"
+            title = "THE 6 QUINTILLION DOLLAR DREAM"
             msg = "You finally have it. The 6 Quintillion credits needed for ATG 6.\n\nYou rush to the Chockster Gumes HQ to buy the game, but the windows are boarded up.\n\nBREAKING NEWS: Chockster Gumes has run out of money. ATG 6 is canceled indefinitely.\n\nYour fortune is worthless in a world without the game."
             end_msg = "You stare into Ton-216's darkness, feeling yourself unravel.\nYou jump into the black hole.\n\n'The Universe Tasted Well.' (At least you tied Ending)"
         else:
-            title = "Failed Investment"
+            title = "FAILED INVESTMENT"
             msg = f"It is Day 40. You have {format_currency(self.session['money'])}, but ATG 6 costs 6.00Q.\n\nChockster Gumes ignores your calls. You are just another failed entrepreneur in a cold, sandwich-less universe."
             end_msg = "The crushing weight of failure is heavier than the black hole's gravity.\nYou jump into Ton-216.\n\n'Everything was Soggy.' (Bad Ending)"
 
@@ -2108,8 +1957,9 @@ class GameScreen(QWidget):
 
     def next_day(self):
         # Stop timers
-        self.set_paused(True)
         self.decay_timer.stop()
+        self.customer_patience_timer.stop()
+        self.order_timer.stop()
         self.hazard_timer.stop()
 
         rent = self.effective_rent
@@ -2131,7 +1981,6 @@ class GameScreen(QWidget):
             f"<b>DAY {self.session['day']} ANALYTICS:</b>\n\n"
             f"Sandwiches Served: {self.day_served}\n"
             f"Customers Lost: {self.day_customers_lost}\n"
-            f"Hearts Remaining: {self.session.get('hearts', 0)}\n"
             f"Gross Profit: {format_currency(self.day_gross)}\n"
             f"Bio-Waste Fees: -{format_currency(self.day_waste)}\n"
             f"{rent_name}: -{format_currency(rent)}\n"
@@ -2145,7 +1994,6 @@ class GameScreen(QWidget):
         )
         
         self.session['day'] += 1
-        self.session['customers_today'] = 0
         self.session['lore_log_content'] = self.story_log.toHtml()
         
         # Add daily lore
@@ -2161,12 +2009,10 @@ class GameScreen(QWidget):
             if self.session['money'] >= loc_data['req']:
                 success_text = loc_data['success_msg']
                 def transition():
+                    # Show upgrade shop before transitioning
                     self.session['location_id'] += 1
                     new_loc = LOCATIONS[self.session['location_id']]
                     self.session['rank'] = new_loc['rank']
-                    # Reset hearts on move
-                    self.session['hearts'] = DIFFICULTY_SETTINGS[self.session['difficulty']]['hearts']
-                    
                     for name, info in INGREDIENTS.items():
                         if info['loc'] == self.session['location_id'] and name not in self.session['unlocked']:
                             self.session['unlocked'].append(name)
@@ -2198,7 +2044,7 @@ class GameScreen(QWidget):
         self.day_waste = 0
         self.day_served = 0
         self.day_customers_lost = 0
-        self.ingredient_discount = 1.0
+        self.ingredient_discount = 1.0  # Reset ingredient discount
         self.refresh_stats()
         
         if self.save_callback:
@@ -2206,6 +2052,7 @@ class GameScreen(QWidget):
             
         self.log_message(f"<b>Day {self.session['day']} begins.</b>")
         
+        # New market event for the day
         self.current_market_event = random.choice(list(MARKET_EVENTS.values()))
         self.setup_ingredients()
         self.update_tabs()
@@ -2277,8 +2124,8 @@ class GameScreen(QWidget):
 
     def start_next_day_mechanics(self):
         """Restart timers after day summary popup is closed."""
-        self.set_paused(False)
         self.decay_timer.start(100)
+        self.customer_patience_timer.start(1000)
         if self.session.get('location_id') in [3, 4, 5]:
             self.hazard_timer.start(5000)
         else:
@@ -2288,25 +2135,21 @@ class GameScreen(QWidget):
         self.generate_order()
 
     def trigger_environmental_hazard(self):
-        if self.is_paused: return
-        
         loc_id = self.session.get('location_id')
-        hazard_chance = DIFFICULTY_SETTINGS[self.session.get('difficulty', 'NORMAL')]["hazard_chance"]
-        
         if loc_id == 3:  # Moon: Solar Flare
-            if random.random() < hazard_chance:
+            if random.random() < 0.2:
                 self.log_message("<span style='color: #ff9800;'>WARNING: Solar Flare detected! Expect visual interference.</span>")
                 self.window().solar_flare_active = True
-                self.display_current_order()
+                self.display_current_order() # Scramble existing log
                 QTimer.singleShot(random.randint(3000, 8000), self.clear_environmental_hazard)
         elif loc_id == 4:  # Mars: Sandstorm
-            if random.random() < hazard_chance:
+            if random.random() < 0.2:
                 self.log_message("<span style='color: #bf360c;'>WARNING: Martian Sandstorm approaching! Visibility reduced.</span>")
                 self.sandwich_visual.sandstorm_active = True
-                self.setup_ingredients() 
+                self.setup_ingredients() # Hide ingredient names
                 QTimer.singleShot(random.randint(3000, 8000), self.clear_environmental_hazard)
         elif loc_id == 5:  # Jupiter: Gravity Surge
-            if random.random() < hazard_chance:
+            if random.random() < 0.2:
                 self.log_message("<span style='color: #4a148c;'>WARNING: Gravitational Surge! Controls malfunctioning.</span>")
                 self.gravity_surge_active = True
                 QTimer.singleShot(random.randint(4000, 7000), self.clear_environmental_hazard)
@@ -2316,11 +2159,11 @@ class GameScreen(QWidget):
         if loc_id == 3:
             self.window().solar_flare_active = False
             self.log_message("<span style='color: #4caf50;'>Solar Flare subsided.</span>")
-            self.display_current_order()
+            self.display_current_order() # Restore order text
         elif loc_id == 4:
             self.sandwich_visual.sandstorm_active = False
             self.log_message("<span style='color: #4caf50;'>Sandstorm passed.</span>")
-            self.setup_ingredients() 
+            self.setup_ingredients() # Restore ingredient names
         elif loc_id == 5:
             self.gravity_surge_active = False
             self.log_message("<span style='color: #4caf50;'>Gravity stabilized.</span>")
@@ -2432,6 +2275,7 @@ class MainWindow(QMainWindow):
             output = QAudioOutput(player)
             player.setAudioOutput(output)
             output.setVolume(self.audio_output.volume())
+            # Use resolve() to handle absolute paths with spaces on Windows
             player.setSource(QUrl.fromLocalFile(str(path.resolve())))
             player.play()
 
