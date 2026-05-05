@@ -8217,6 +8217,61 @@
             "value": 700.0,
             "day": 1,
             "location": "Your Front Garden"
+        },
+        {
+            "name": "The Garden Masterpiece",
+            "ingredients": [
+                "Bread",
+                "Fresh Tomato",
+                "Bread"
+            ],
+            "value": 787.5,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Garden Singularity",
+            "ingredients": [
+                "Bread",
+                "Fresh Tomato",
+                "Bread"
+            ],
+            "value": 826.875,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Fresh Stack",
+            "ingredients": [
+                "Bread",
+                "Fresh Tomato",
+                "Bread"
+            ],
+            "value": 20,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Meaty Orb",
+            "ingredients": [
+                "Bread",
+                "Bread"
+            ],
+            "value": 66.0,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Garden Creation",
+            "ingredients": [
+                "Bread",
+                "Fresh Tomato",
+                "Fresh Tomato",
+                "Bread"
+            ],
+            "value": 322.0,
+            "day": 1,
+            "location": "Your Front Garden"
         }
     ]
 }

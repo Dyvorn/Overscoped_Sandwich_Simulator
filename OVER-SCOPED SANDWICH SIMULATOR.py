@@ -72,9 +72,9 @@ GAME_COLORS = {
 LOCATIONS = {
     1: {
         "name": "Your Front Garden", "days": 7, "rank": "Beginner Chef", "req": 500, 
-        "fail": "You fail to earn enough customers before inspectors arrive, get fined into oblivion, and your grill is seized.",
+        "fail": "You couldn't ketchup to demand.",
         "intro": "You begin your empire in your garden, where you craft simple tomato sandwiches for neighbors and random dogs.",
-        "success_msg": "You sell your house and, on Day 8, move into a small commercial shop.",
+        "success_msg": "The government arrives to shut you down, but you sell your house just in time to buy a shop!",
         "profit_mult": 1,
         "sky": ["#81d4fa", "#29b6f6"],
         "rent": 20,
@@ -84,9 +84,9 @@ LOCATIONS = {
     },
     2: {
         "name": "Small Sandwich Shop", "days": 12, "rank": "Amateur Entrepreneur", "req": 5000, 
-        "fail": "You try to hide your shop but get caught selling black-market ham. Sentenced to “Eternal Sandwich Duty.”",
-        "intro": "You reopen as a proud shop owner. Premium ham becomes your signature upgrade, and soon locals line up around the block.",
-        "success_msg": "You build a secret rocket from stale bread and launch on Day 13.",
+        "fail": "You've been ham-handled by justice.",
+        "intro": "The government arrived and seized your garden! You relocate to a small shop. Premium ham is now on the menu.",
+        "success_msg": "The Global Sandwich Ban hits! You build a rocket out of stale bread and launch into the unknown.",
         "profit_mult": 10,
         "sky": ["#4fc3f7", "#0288d1"],
         "rent": 200, 
@@ -96,9 +96,9 @@ LOCATIONS = {
     },
     3: {
         "name": "The Moon Base", "days": 15, "rank": "Space Chef", "req": 100000, 
-        "fail": "Stay too long collecting more cheese and your base collapses from tidal forces.",
-        "intro": "By Day 3 on the Moon, business explodes. Tourists love your low-gravity sandwiches that bounce when dropped. Cosmic Cheese increases price and flavor 300%.",
-        "success_msg": "Escape on Day 16 with your rocket in one piece.",
+        "fail": "Moon Melt: The sandwich was too strong.",
+        "intro": "The Global Sandwich Ban forced you into space. You've landed on the Moon. Cosmic Cheese awaits!",
+        "success_msg": "The Lunar Authority demands a shutdown. You ignite your engines and head for the red planet.",
         "profit_mult": 100,
         "sky": ["#212121", "#000000"],
         "rent": 5000,
@@ -108,20 +108,21 @@ LOCATIONS = {
     },
     4: {
         "name": "Mars Diner", "days": 20, "rank": "Interplanetary Tycoon", "req": 10000000, 
-        "fail": "You stay to reason with rioters but get crowned “King of Spicy Bread” and can never leave.",
-        "intro": "Your diner thrives under crimson skies. Martian Pepper adds explosive spiciness that turns your sandwiches into interplanetary hits.",
-        "success_msg": "You flee by Day 21, boosting your rocket toward Jupiter.",
+        "fail": "Absorbed into the Martian cult of flavor.",
+        "intro": "Gravity distortion laws forced you off the Moon. Welcome to Mars! Beware the heat of Martian Peppers.",
+        "success_msg": "A flavor riot breaks out! You narrowly escape the Martian Senate's wrath, boosting toward Jupiter.",
         "profit_mult": 5000,
         "sky": ["#bf360c", "#3e2723"],
         "rent": 250000,
+        "rent_name": "Cooling Utilities",
         "music_file": SOUNDS_DIR / "music_mars.mp3",
         "bg_file": IMAGES_DIR / "bg_mars.png",
     },
     5: {
         "name": "Jupiter Floating Bar", "days": 25, "rank": "Gas Giant Gourmet", "req": 1000000000, 
-        "fail": "You try to tough it out but the bar implodes in a flash.",
-        "intro": "Now surrounded by storms, your floating bar becomes a cosmic hotspot. Storm Pickles, electrified by Jupiter’s lightning, make your sandwiches literally crackle with flavor.",
-        "success_msg": "You warp out of Jupiter’s skies by Day 26.",
+        "fail": "You became static in the sandwich industry.",
+        "intro": "Fleeing the flavor riots on Mars, you've reached Jupiter. Storm Pickles provide an electric kick.",
+        "success_msg": "The gravitational pressure is crushing the bar! You warp out just as the shop implodes.",
         "profit_mult": 200000,
         "sky": ["#4a148c", "#1a237e"],
         "rent": 15000000,
@@ -131,9 +132,9 @@ LOCATIONS = {
     },
     6: {
         "name": "Ton-216 (Black Hole)", "days": 40, "rank": "Galactic Master Chef", "req": 6000000000000000000, 
-        "fail": "If you run out of ingredients before hitting 6 quintillion, the black hole consumes your store.",
-        "intro": "At the edge of existence, you use raw void matter to craft the galaxy’s ultimate sandwiches. Each sale earns billions, bending physics and hunger alike.",
-        "success_msg": "You make your fortune — 6 quintillion dollars, enough for ATG 6. But your excitement fades instantly when the news hits: “Chockster Gumes goes bankrupt. ATG 6 canceled indefinitely.”",
+        "fail": "It is Day 40 and you're short of 6 Quintillion. Chockster Gumes won't even look at you. You jump into Ton-216's darkness.",
+        "intro": "The bar is imploding! You've jumped to the edge of Ton-216. Use Void Matter to reach 6 Quintillion.",
+        "success_msg": "You've done it. You have the money. But the black hole beckons...",
         "profit_mult": 100000000,
         "sky": ["#000000", "#000000"],
         "rent": 1000000000,
@@ -520,67 +521,33 @@ class SandwichRenderer(QWidget):
 class StoryOverlay(QWidget):
     def __init__(self, title, text, callback, option_a=None, option_b=None, choice_callback=None):
         super().__init__()
-        self.setObjectName("StoryOverlay") # Set object name for styling
         self.callback = callback
         self.choice_callback = choice_callback
         self.setFixedSize(600, 450)
         self.setStyleSheet("background: rgba(13, 13, 22, 230); border: 4px solid #ffca28; border-radius: 20px;")
-        self.setStyleSheet("""
-            #StoryOverlay {
-                background: #fdf8e3; /* Light beige/cream for paper */
-                border: 4px solid #4a4a4a; /* Dark grey border */
-                border-radius: 5px; /* Sharper corners for newspaper */
-            }
-            QLabel#title_label { /* Use objectName for specific styling */
-                font-family: 'Times New Roman', serif;
-                font-size: 36px;
-                font-weight: bold;
-                color: #333; /* Dark text */
-                border: none;
-                padding-bottom: 5px;
-                border-bottom: 2px solid #4a4a4a; /* Separator line */
-            }
-            QTextEdit#message_text_edit {
-                font-family: 'Georgia', serif; /* Another serif font for body */
-                font-size: 16px;
-                color: #333;
-                border: 1px solid #ccc; /* Subtle border for the text block */
-                background: #f5f0d8; /* Slightly darker beige for text block */
-                padding: 10px;
-                border-radius: 3px;
-            }
-        """)
         
         layout = QVBoxLayout()
         t_label = QLabel(title)
         t_label.setStyleSheet("font-size: 28px; font-weight: bold; color: #ffca28; border: none;")
-        t_label.setObjectName("title_label")
         t_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         m_label = QLabel(text)
         m_label.setStyleSheet("font-size: 16px; color: white; border: none;")
         m_label.setWordWrap(True)
         m_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        m_text_edit = QTextEdit()
-        m_text_edit.setObjectName("message_text_edit")
-        m_text_edit.setReadOnly(True)
-        m_text_edit.setHtml(f"<p style='font-family: Georgia, serif; font-size: 16px; color: #333;'>{text}</p>")
         
         layout.addWidget(t_label)
         layout.addSpacing(15)
         layout.addWidget(m_label)
-        layout.addWidget(m_text_edit)
         layout.addSpacing(20)
         
         if option_a and option_b:
             btn_layout = QHBoxLayout()
             btn_a = JuicyButton(option_a)
-            btn_a.setStyleSheet(self.get_button_style())
             btn_a.setFixedWidth(250)
             btn_a.setMinimumHeight(60)
             btn_a.clicked.connect(lambda: self.choose("a"))
             btn_b = JuicyButton(option_b)
-            btn_b.setStyleSheet(self.get_button_style())
             btn_b.setFixedWidth(250)
             btn_b.setMinimumHeight(60)
             btn_b.clicked.connect(lambda: self.choose("b"))
@@ -589,7 +556,6 @@ class StoryOverlay(QWidget):
             layout.addLayout(btn_layout)
         else:
             btn = JuicyButton("CONTINUE")
-            btn.setStyleSheet(self.get_button_style())
             btn.setFixedWidth(200)
             btn.clicked.connect(self.close_and_continue)
             layout.addWidget(btn, 0, Qt.AlignmentFlag.AlignCenter)
@@ -601,29 +567,6 @@ class StoryOverlay(QWidget):
         self.setParent(None)
         if self.choice_callback:
             self.choice_callback(choice)
-
-    def get_button_style(self):
-        """Returns a newspaper-themed button style."""
-        return """
-            JuicyButton {
-                background-color: #e0e0e0; /* Light grey for newspaper button */
-                color: #333;
-                border-radius: 3px; /* Sharper corners */
-                font-size: 18px;
-                font-weight: bold;
-                padding: 8px;
-                border: 2px solid #4a4a4a;
-                margin: 5px;
-            }
-            JuicyButton:hover {
-                background-color: #d0d0d0;
-                border: 2px solid #333;
-            }
-            JuicyButton:pressed {
-                background-color: #c0c0c0;
-                border: 2px solid #222;
-            }
-        """
 
     def close_and_continue(self):
         self.setParent(None)
@@ -1476,7 +1419,6 @@ class GameScreen(QWidget):
                 self.customers_today += 1
                 self.sandwich_visual.clear()
                 self.refresh_stats()
-                self.generate_order()
                 self.check_day_end()
 
     def cool_down(self):
@@ -1485,14 +1427,13 @@ class GameScreen(QWidget):
 
     def refresh_stats(self):
         money_str = format_currency(self.session['money'])
-        hype_str = f" | Hype: {int(self.hype * 100)}%" if self.hype > 0 else ""
         loan_str = ""
+        hype_str = f" | Hype: {int(self.hype * 100)}%" if self.hype > 0 else ""
         if self.session.get('loan_amount', 0) > 0:
             loan_str = f" | Loan: {format_currency(self.session['loan_amount'])} ({(self.session.get('loan_interest_rate', 0.1)*100):.0f}%)"
 
         spice_str = f" | HEAT: {int(self.spiciness)}%" if self.session.get('location_id') == 4 else ""
         self.stats_label.setText(
-            f"Day: {self.session['day']} | Cash: {money_str} | Rank: {self.session['rank']}"
             f"Day: {self.session['day']} ({self.customers_today}/{self.max_customers_per_day}) | Cash: {money_str} | Rank: {self.session['rank']}"
             f"{hype_str}{loan_str}{spice_str}"
         )
@@ -1535,8 +1476,6 @@ class GameScreen(QWidget):
         if loc_id == 6:
             num = random.randint(6, 10)
         
-        self.customer_patience = 100
-        self.patience_bar.setValue(100)
         # Item 1: Realistic Bread (Start and End)
         if num < 2: num = 2
         order = ["Bread"]
@@ -1550,10 +1489,6 @@ class GameScreen(QWidget):
         self.patience_bar.setValue(self.customer_patience)
         self.customer_patience_timer.start(1000)
             
-        self.current_order = [random.choice(unlocked) for _ in range(num)]
-        
-        if "Bread" in unlocked and "Bread" not in self.current_order:
-            self.current_order[0] = "Bread"
         self.current_order = order
             
         self.active_order_text = ", ".join(self.current_order)
@@ -1807,13 +1742,11 @@ class GameScreen(QWidget):
         diff = self.session.get('difficulty', 'NORMAL')
 
         if matched:
-            multiplier = 3.0
             # Scaling order bonus
             multiplier = 2.0 + (len(self.current_sandwich) * 0.5)
             # Secret Recipe Bonus
             secret_bonus = 1.0
             recipe_name_found = None
-            current_sandwich_tuple = tuple(sorted(self.current_sandwich))
             current_sandwich_list = list(self.current_sandwich)
             for recipe_name, recipe_data in SECRET_RECIPES.items():
                 if current_sandwich_list == recipe_data["ingredients"]:
@@ -1863,11 +1796,9 @@ class GameScreen(QWidget):
             elif diff == "NORMAL":
                 # Exactly what you paid (refunding costs)
                 total_value = raw_cost * loc_mult
-            else: # OVER-SCOPED (Lose money on mismatch)
+            else: # Item 8: OVER-SCOPED (Lose money on mismatch)
                 # Lose money proportional to what you spent
                 total_value = -0.5 * raw_cost * loc_mult
-
-
 
         # Location Inflation
         # loc_mult = self.current_location.get('profit_mult', 1) # Moved up
@@ -1947,7 +1878,6 @@ class GameScreen(QWidget):
         self.spiciness = 0
         self.refresh_stats()
         self.update_tabs()
-        self.generate_order()
         self.check_day_end()
 
     def check_day_end(self):
@@ -2060,11 +1990,11 @@ class GameScreen(QWidget):
         if is_win:
             title = "THE 6 QUINTILLION DOLLAR DREAM"
             msg = "You finally have it. The 6 Quintillion credits needed for ATG 6.\n\nYou rush to the Chockster Gumes HQ to buy the game, but the windows are boarded up.\n\nBREAKING NEWS: Chockster Gumes has run out of money. ATG 6 is canceled indefinitely.\n\nYour fortune is worthless in a world without the game."
-            end_msg = "You stare into Ton-216’s darkness, feeling yourself unravel.\nYou jump into the black hole.\n\n'The Universe Tasted Well.' (At least you tied Ending)"
+            end_msg = "You stare into Ton-216's darkness, feeling yourself unravel.\nYou jump into the black hole.\n\n'The Universe Tasted Well.' (At least you tied Ending)"
         else:
-            title = "LOST TO FLAVOR SINGULARITY"
-            msg = "If you run out of ingredients before hitting 6 quintillion, the black hole consumes your store."
-            end_msg = "The crushing weight of failure is heavier than the black hole's gravity.\nYou are absorbed into the void.\n\n'Lost to flavor singularity.' (Bad Ending)"
+            title = "FAILED INVESTMENT"
+            msg = f"It is Day 40. You have {format_currency(self.session['money'])}, but ATG 6 costs 6.00Q.\n\nChockster Gumes ignores your calls. You are just another failed entrepreneur in a cold, sandwich-less universe."
+            end_msg = "The crushing weight of failure is heavier than the black hole's gravity.\nYou jump into Ton-216.\n\n'Everything was Soggy.' (Bad Ending)"
 
         self.show_story_popup(title, msg, 
             lambda: self.show_story_popup("THE END", end_msg, 
@@ -2159,6 +2089,7 @@ class GameScreen(QWidget):
         self.day_waste = 0
         self.day_served = 0
         self.day_customers_lost = 0
+        self.customers_today = 0 # Reset customer count for the new day
         self.ingredient_discount = 1.0  # Reset ingredient discount
         self.refresh_stats()
         
