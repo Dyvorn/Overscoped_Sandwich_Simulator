@@ -8175,6 +8175,48 @@
             "value": -7.5,
             "day": 1,
             "location": "Your Front Garden"
+        },
+        {
+            "name": "The Stale Dream",
+            "ingredients": [
+                "Bread",
+                "Bread"
+            ],
+            "value": 150.0,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Frozen Monstrosity",
+            "ingredients": [
+                "Bread",
+                "Bread"
+            ],
+            "value": 10,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Quantum Orb",
+            "ingredients": [
+                "Bread",
+                "Bread"
+            ],
+            "value": 10,
+            "day": 1,
+            "location": "Your Front Garden"
+        },
+        {
+            "name": "The Juicy Wonder",
+            "ingredients": [
+                "Bread",
+                "Fresh Tomato",
+                "Fresh Tomato",
+                "Bread"
+            ],
+            "value": 700.0,
+            "day": 1,
+            "location": "Your Front Garden"
         }
     ]
 }
